@@ -43,13 +43,13 @@ The three initialization images are:
 |===
 | Image | Description
 
-| `docker.inetsoft.com/inetsoft/init-db`
+| `inetsoft-technology/init-db`
 | Initializes a database data space.
 
-| `docker.inetsoft.com/inetsoft/init-fs`
+| `inetsoft-technology/init-fs`
 | Initializes a default file system data space.
 
-| `docker.inetsoft.com/inetsoft/init-oak`
+| `inetsoft-technology/init-oak`
 | Initializes a new data space based on Jackrabbit Oak that is optimized for
   use in Kubernetes.
 |===
@@ -509,10 +509,10 @@ The two service images are:
 |===
 | Image | Description
 
-| `docker.inetsoft.com/inetsoft/server`
+| `inetsoft-technology/server`
 | The application server.
 
-| `docker.inetsoft.com/inetsoft/scheduler`
+| `inetsoft-technology/scheduler`
 | The scheduler.
 |===
 
