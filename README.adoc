@@ -267,7 +267,7 @@ directory of this repository.
 [[image-init-scripts]]
 ==== Initialization Scripts
 
-Initialization scripts are shell (`*.sh`) or Groovy (`*.groovy`) scripts
+Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts
 that are named using a convention that will ensure the order of their
 execution. For example, `00-start.sh` would be executed first and
 `99-finish.groovy` would be executed last.
@@ -577,7 +577,7 @@ Create secret containing your database credentials.
 ----
 kubectl -n inetsoft create secret generic inetsoft-db-secret \
   --from-literal=user=your_db_username \
-  --from-literal=password=your_db_password \
+  --from-literal=password=your_db_password
 ----
 
 Create a secret containing your master password.
