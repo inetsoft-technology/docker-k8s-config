@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inetsoft-scheduler
+  labels:
+    app: inetsoft-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inetsoft-scheduler
+  template:
+    metadata:
+      labels:
+        app: inetsoft-scheduler
+        inetsoftClusterNode: "true"
+    spec:
+      serviceAccountName: inetsoft
+      imagePullSecrets:
+        - name: inetsoft-docker-secret
+      containers:
+        - name: inetsoft-scheduler
+          image: docker.inetsoft.com/inetsoft/scheduler:13.4.133301
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          ports:
+            - name: rmi
+              containerPort: 1099
+              protocol: TCP
+          env:
+            - name: INETSOFT_MASTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-master-secret
+                  key: password
+          volumeMounts:
+            - mountPath: "/var/lib/inetsoft/shared"
+              name: inetsoft-shared
+      initContainers:
+        - name: inetsoft-init-scheduler
+          image: docker.inetsoft.com/inetsoft/init-oak:13.4.133301
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          volumeMounts:
+            - mountPath: "/var/lib/inetsoft/shared"
+              name: inetsoft-shared
+      volumes:
+        - name: inetsoft-shared
+          persistentVolumeClaim:
+            claimName: inetsoft-shared-pvc

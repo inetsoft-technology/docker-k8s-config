@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: inetsoft
+bases:
+  - ../../base
+resources:
+  - pvc-mysql.yaml
+  - service-mysql.yaml
+  - deployment-mysql.yaml
+patchesStrategicMerge:
+  - deployment-server.yaml
+  - deployment-scheduler.yaml

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inetsoft-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: inetsoft-init-server
+          env:
+            - name: INETSOFT_MASTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-master-secret
+                  key: password
+            - name: INETSOFT_CONFIG_URL
+              value: git://https://github.com/inetsoft-technology/docker-k8s-config.git
+            - name: INETSOFT_CONFIG_PATH
+              value: config
+            - name: INETSOFT_CONFIG_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-config-secret
+                  key: user
+            - name: INETSOFT_CONFIG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-config-secret
+                  key: password
+            - name: INETSOFT_LICENSE
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-license-secret
+                  key: license
+            - name: INETSOFT_DB_TYPE
+              value: MySQL
+            - name: INETSOFT_DB_URL
+              value: jdbc:mysql://inetsoft-mysql:3306/inetsoft?useSSL=false
+            - name: INETSOFT_DB_DRIVER
+              value: com.mysql.jdbc.Driver
+            - name: INETSOFT_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-db-secret
+                  key: user
+            - name: INETSOFT_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inetsoft-db-secret
+                  key: password
