@@ -15,24 +15,17 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-IMPORTANT: This is preliminary documentation for the upcoming 2021 release of
-the InetSoft software. This document is subject to change pending release.
+IMPORTANT: This is preliminary documentation for the upcoming 2021 release of the InetSoft software. This document is subject to change pending release.
 
 [[overview]]
 == Overview
 
-InetSoft provides Docker images that are optimized for deployment into both
-Docker and Kubernetes. This document and the files provided in this
-repository describe the images and the recommended deployment into Docker
-and Kubernetes.
+InetSoft provides Docker images that are optimized for deployment into both Docker and Kubernetes. This document and the files provided in this repository describe the images and the recommended deployment into Docker and Kubernetes.
 
 [[images]]
 == Docker Images
 
-Three initialization images and two service images are provided. The
-initialization images are intended for use as a sidecar container that
-performs a one-time configuration that may be customized without creating
-any new images. The service images are used to run the server and scheduler.
+Three initialization images and two service images are provided. The initialization images are intended for use as a sidecar container that performs a one-time configuration that may be customized without creating any new images. The service images are used to run the server and scheduler.
 
 [[images-init]]
 === Initialization Images
@@ -49,15 +42,12 @@ The three initialization images are:
 | Initializes a default file system data space.
 
 | `docker.inetsoft.com/inetsoft/init-oak`
-| Initializes a new data space based on Jackrabbit Oak that is optimized for
-  use in Kubernetes.
+| Initializes a new data space based on   http://jackrabbit.apache.org/oak/[Apache Jackrabbit Oak] that is optimized   for use in Kubernetes.
 |===
 
-All initialization images _mount_ a volume at `/var/lib/inetsoft/shared`.
-This volume must be shared with the server and scheduler containers.
+All initialization images _must_ mount a volume at `/var/lib/inetsoft/shared`. This volume must be shared with the server and scheduler containers.
 
-NOTE: It is strongly recommended that the Oak data space is used in Kubernetes or a
-clustered deployment in Docker.
+NOTE: It is strongly recommended that the Oak data space is used in Kubernetes or a clustered deployment in Docker.
 
 [[image-init-vars]]
 ==== Configuration Variables
@@ -100,8 +90,7 @@ The following variables are used to configure the software:
 | _None_
 
 | `INETSOFT_DB_TYPE`
-| The type of internal database. Must be one of `SQLServer`, `Oracle`,
-  `Derby`, `DB2`, `PostgreSQL`, `MySQL`, or `H2`.
+| The type of internal database. Must be one of `SQLServer`, `Oracle`,   `Derby`, `DB2`, `PostgreSQL`, `MySQL`, or `H2`.
 | `H2`
 
 | `INETSOFT_DB_URL`
@@ -184,12 +173,9 @@ The following variables are used to configure the software:
 [[image-init-config]]
 ==== External Configuration
 
-External configuration can be supplied by mounting an external volume
-containing the configuration at `/var/lib/inetsoft/staging`, or by setting
-environment variables that control where the configuration is copied from.
+External configuration can be supplied by mounting an external volume containing the configuration at `/var/lib/inetsoft/staging`, or by setting environment variables that control where the configuration is copied from.
 
-The external configuration can be copied from a Git repository or any
-location supported by https://commons.apache.org/proper/commons-vfs/filesystems.html[Apache Commons VFS].
+The external configuration can be copied from a Git repository or any location supported by https://commons.apache.org/proper/commons-vfs/filesystems.html[Apache Commons VFS].
 
 The environment variables specifying the location are as follows:
 
@@ -206,33 +192,22 @@ The environment variables specifying the location are as follows:
 | The password for the configuration URL.
 
 | `INETSOFT_CONFIG_KEYFILE`
-| The location of the SSH key file. If specified, `INETSOFT_CONFIG_PASSWORD`
-  should be the password for the key file, if required.
+| The location of the SSH key file. If specified, `INETSOFT_CONFIG_PASSWORD` should be the password for the key file, if required.
 
 | `INETSOFT_CONFIG_BRANCH`
 | The branch or tag if using the Git repository.
 
 | `INETSOFT_CONFIG_PATH`
-| The path, relative to the URL, containing the configuration. If not
-  specified, the URL will be used as the base of the configuration.
+| The path, relative to the URL, containing the configuration. If not specified, the URL will be used as the base of the configuration.
 |===
 
-The URL for Git repositories should be prefixed with `git://`, for example,
-`git://http://host/...`, `git://https://host/...`, or
-`git://ssh://user@host:/...`.
+The URL for Git repositories should be prefixed with `git://`, for example, `git://http://host/...`, `git://https://host/...`, or `git://ssh://user@host:/...`.
 
-The URL may be for a directory containing the external configuration or an
-archive file containing the external configuration. Any archive file format
-supported by https://commons.apache.org/proper/commons-compress/[Apache Commons Compress]
-may be used, including GZIPed archives of supported formats (e.g. `*.tar.gz`).
+The URL may be for a directory containing the external configuration or an archive file containing the external configuration. Any archive file format supported by https://commons.apache.org/proper/commons-compress/[Apache Commons Compress] may be used, including GZIPed archives of supported formats (e.g. `*.tar.gz`).
 
-HTTP and HTTPS do not support directory listing, so if using one of these
-protocols, it _must_ be for an archive file.
+HTTP and HTTPS do not support directory listing, so if using one of these protocols, it _must_ be for an archive file.
 
-If you are mounting the external configuration to the
-`/var/lib/inetsoft/staging` volume, the URL should be set to
-`file:///var/lib/inetsoft/staging`. The `file:` protocol should not be used
-otherwise.
+If you are mounting the external configuration to the `/var/lib/inetsoft/staging` volume, the URL should be set to `file:///var/lib/inetsoft/staging`. The `file:` protocol should not be used otherwise.
 
 The external configuration may contain the following directories:
 
@@ -243,9 +218,7 @@ The external configuration may contain the following directories:
 | Asset ZIP files that will be imported into the repository.
 
 | `config/`
-| Files to be placed in the data space. It may include an `asset.dat.d`
-  directory containing assets. This is essentially a local `sree.home`
-  directory.
+| Files to be placed in the data space. It may include an `asset.dat.d` directory containing assets. This is essentially a local `sree.home` directory.
 
 | `drivers/`
 | Additional JDBC drivers.
@@ -266,161 +239,138 @@ directory of this repository.
 [[image-init-scripts]]
 ==== Initialization Scripts
 
-Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts
-that are named using a convention that will ensure the order of their
-execution. For example, `00-start.sh` would be executed first and
-`99-finish.groovy` would be executed last.
+Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts that are named using a convention that will ensure the order of their execution. For example, `00-start.sh` would be executed first and `99-finish.groovy` would be executed last.
 
-The script that copies the files from the staging directory to the shared
-directory, database, or Oak repository should be named `50-stage.groovy` or
-`50-stage.sh`. That way, any scripts that should be executed before files are
-deployed into the data space should be less than 50 and any scripts that
-should be executed after they are deployed should be greater than 50. Groovy
-scripts should not call `connect` unless they are greater than 50.
+The script that copies the files from the staging directory to the shared directory, database, or Oak repository should be named `50-stage.groovy` or `50-stage.sh`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
 
 The following script levels are reserved by pre-defined scripts:
 
 * `00` - initializes the base properties and passwords.
-* `49` - stages the shared files that are outside the data space, e.g.
-         plugins and drivers.
+* `49` - stages the shared files that are outside the data space, e.g. plugins and drivers.
 * `50` - installs files from staging into the data space.
 * `51` - re-encrypts the admin password to ensure FIPS compliance.
 * `75` - imports all assets from `staging/assets` into the data space.
 
-This convention allows external configurations to customize the configuration
-during various phases of the initialization process. For example, a script
-named `01-remove-extras.sh` could delete unwanted drivers or plugins from the
-staging directory. A script named `76-set-passwords.groovy` could change the
-username and password of a data source.
+This convention allows external configurations to customize the configuration during various phases of the initialization process. For example, a script named `01-remove-extras.sh` could delete unwanted drivers or plugins from the staging directory. A script named `76-set-passwords.groovy` could change the username and password of a data source.
 
 [[image-init-oak]]
 ==== Oak Configuration
 
-By default, Oak is configured using the internal database for the document
-node store and a file blob store with sensible file paths. If you want to
-use MongoDB for the document node store or a different blob store, you'll
-need to include a custom `config/oak-config.yaml` file in your external
-configuration.
+By default, Oak is configured using the internal database for the document node store and a file blob store with sensible file paths. If you want to use MongoDB for the document node store or a different blob store, you'll need to include a custom `config/oak-config.yaml` file in your external configuration.
 
 The Oak configuration file has the following structure:
 
+.oak-config.yaml
 [source,yaml]
 ----
-blob: <1>
-  file: <2>
-    enabled: false <3>
-    baseDir: '/var/lib/inetsoft/shared/oak' <4>
-    cacheEnabled: false <5>
-    cache: <6>
-      cacheDir: '/var/lib/inetsoft/local/oak/{instance}/blob' <7>
-      cacheSize: 68719476736 <8>
-      stagingSplitPercentage: 10 <9>
-      uploadThreads: 10 <10>
-      stagingPurgeInterval: 300 <11>
-      stagingRetryInterval: 600 <12>
-  mongo: <13>
-    enabled: false <14>
-  s3: <15>
-    enabled: false <16>
-    accessKey: '' <17>
-    secretKey: '' <18>
-    bucket: '' <19>
-    region: '' <20>
-    endpoint: '' <21>
-    connectionTimeout: 0 <22>
-    socketTimeout: 0 <23>
-    maxConnections: 0 <24>
-    maxErrorRetry: 0 <25>
-    writeThreads: 10 <26>
-    renameKeys: false <27>
-    cache: <28>
-      cacheDir: '' <29>
-      cacheSize: 68719476736 <30>
-      stagingSplitPercentage: 10 <31>
-      uploadThreads: 10 <32>
-      stagingPurgeInterval: 300 <33>
-      stagingRetryInterval: 600 <34>
-  rdb: <35>
-    enabled: false <36>
-  azure: <37>
-    enabled: false <38>
-    secureAccessSignature: '' <39>
-    blobEndpoint: '' <40>
-    connectionString: '' <41>
-    accountName: '' <42>
-    accountKey: '' <43>
-    container: '' <44>
-    createContainer: true <45>
-    maxConnections: 2 <46>
-    socketTimeout: 3 <47>
-    maxErrorRetry: -1 <48>
-    cache: <49>
-      cacheDir: '' <50>
-      cacheSize: 68719476736 <51>
-      stagingSplitPercentage: 10 <52>
-      uploadThreads: 10 <53>
-      stagingPurgeInterval: 300 <54>
-      stagingRetryInterval: 600 <55>
-node: <56>
-  memoryCacheSize: 256 <57>
-  nodeCachePercentage: 35 <58>
-  prevDocCachePercentage: 4 <59>
-  childrenCachePercentage: 15 <60>
-  diffCachePercentage: 30 <61>
-  cacheSegmentCount: 16 <62>
-  cacheStackMoveDistance: 16 <63>
-  bundlingDisabled: false <64>
-  prefetchExternalChanges: false <65>
-  updateLimit: 100000 <66>
-  journalGcMaxAge: 86400000 <67>
-  persistentCacheIncludes: <68>
+blob: # <1>
+  file: # <2>
+    enabled: false # <3>
+    baseDir: '/var/lib/inetsoft/shared/oak' # <4>
+    cacheEnabled: false # <5>
+    cache: # <6>
+      cacheDir: '/var/lib/inetsoft/local/oak/{instance}/blob' # <7>
+      cacheSize: 68719476736 # <8>
+      stagingSplitPercentage: 10 # <9>
+      uploadThreads: 10 # <10>
+      stagingPurgeInterval: 300 # <11>
+      stagingRetryInterval: 600 # <12>
+  mongo: # <13>
+    enabled: false # <14>
+  s3: # <15>
+    enabled: false # <16>
+    accessKey: '' # <17>
+    secretKey: '' # <18>
+    bucket: '' # <19>
+    region: '' # <20>
+    endpoint: '' # <21>
+    connectionTimeout: 0 # <22>
+    socketTimeout: 0 # <23>
+    maxConnections: 0 # <24>
+    maxErrorRetry: 0 # <25>
+    writeThreads: 10 # <26>
+    renameKeys: false # <27>
+    cache: # <28>
+      cacheDir: '' # <29>
+      cacheSize: 68719476736 # <30>
+      stagingSplitPercentage: 10 # <31>
+      uploadThreads: 10 # <32>
+      stagingPurgeInterval: 300 # <33>
+      stagingRetryInterval: 600 # <34>
+  rdb: # <35>
+    enabled: false # <36>
+  azure: # <37>
+    enabled: false # <38>
+    secureAccessSignature: '' # <39>
+    blobEndpoint: '' # <40>
+    connectionString: '' # <41>
+    accountName: '' # <42>
+    accountKey: '' # <43>
+    container: '' # <44>
+    createContainer: true # <45>
+    maxConnections: 2 # <46>
+    socketTimeout: 3 # <47>
+    maxErrorRetry: -1 # <48>
+    cache: # <49>
+      cacheDir: '' # <50>
+      cacheSize: 68719476736 # <51>
+      stagingSplitPercentage: 10 # <52>
+      uploadThreads: 10 # <53>
+      stagingPurgeInterval: 300 # <54>
+      stagingRetryInterval: 600 # <55>
+node: # <56>
+  memoryCacheSize: 256 # <57>
+  nodeCachePercentage: 35 # <58>
+  prevDocCachePercentage: 4 # <59>
+  childrenCachePercentage: 15 # <60>
+  diffCachePercentage: 30 # <61>
+  cacheSegmentCount: 16 # <62>
+  cacheStackMoveDistance: 16 # <63>
+  bundlingDisabled: false # <64>
+  prefetchExternalChanges: false # <65>
+  updateLimit: 100000 # <66>
+  journalGcMaxAge: 86400000 # <67>
+  persistentCacheIncludes: # <68>
     - '/'
-  cachePath: '/var/lib/inetsoft/local/oak/{instance}/node' <69>
-  journalPath: '/var/lib/inetsoft/local/oak/{instance}/journal' <70>
-  mongo: <71>
-    enabled: false <72>
-    maxReplicationLog: 21600 <73>
-  rdb: <74>
-    enabled: false <75>
-mongo: <76>
-  hosts: <77>
+  cachePath: '/var/lib/inetsoft/local/oak/{instance}/node' # <69>
+  journalPath: '/var/lib/inetsoft/local/oak/{instance}/journal' # <70>
+  mongo: # <71>
+    enabled: false # <72>
+    maxReplicationLog: 21600 # <73>
+  rdb: # <74>
+    enabled: false # <75>
+mongo: # <76>
+  hosts: # <77>
     - 'localhost:27017'
-  database: '' <78>
-  user: '' <79>
-  password: '' <80>
-  authDatabase: '' <81>
-  replicaSet: '' <82>
-  ssl: false <83>
-  socketKeepAlive: true <84>
+  database: '' # <78>
+  user: '' # <79>
+  password: '' # <80>
+  authDatabase: '' # <81>
+  replicaSet: '' # <82>
+  ssl: false # <83>
+  socketKeepAlive: true # <84>
 ----
 <1> The configuration for the blob store.
 <2> Configuration for a file-based blob store.
 <3> Enables the use of the file system for the blob store.
 <4> The base directory where the blobs are created.
-<5> Enables the local file cache. Should only be used when `baseDir` is on a
-    network file system.
-<6> Configuration for the local file cache. Required if `cacheEnabled` is
-    `true`.
+<5> Enables the local file cache. Should only be used when `baseDir` is on a network file system.
+<6> Configuration for the local file cache. Required if `cacheEnabled` is `true`.
 <7> The root directory of the blob cache. Required.
 <8> The maximum size of the cache in bytes.
 <9> The percent of the cache utilized for upload staging.
 <10> The number of upload threads used for asynchronous uploads from staging.
 <11> The interval for the remove job in seconds.
 <12> The interval for the retry job in seconds.
-<13> The configuration for a MongoDB blob store. If used, the top-level
-     `mongo` properties must also be configured.
+<13> The configuration for a MongoDB blob store. If used, the top-level `mongo` properties must also be configured.
 <14> Enables the use of a Mongo database for the blob store.
 <15> The configuration for an S3 blob store.
 <16> Enables the use of an S3 bucket for the blob store.
-<17> The AWS access key. If not specified, it will use the default
-     credential discovery of the AWS SDK.
-<18> The AWS secret key. If not specified, it will use the default
-     credential discovery of the AWS SDK.
+<17> The AWS access key. If not specified, it will use the default credential discovery of the AWS SDK.
+<18> The AWS secret key. If not specified, it will use the default credential discovery of the AWS SDK.
 <19> The S3 bucket name. Required if `enabled` is true.
-<20> The AWS region. If not specified, it will use the default region
-     discovery of the AWS SDK.
-<21> The AWS API endpoint. If not specified, the default endpoint for the S3
-     service in the region will be used.
+<20> The AWS region. If not specified, it will use the default region discovery of the AWS SDK.
+<21> The AWS API endpoint. If not specified, the default endpoint for the S3 service in the region will be used.
 <22> The connection timeout.
 <23> The socket timeout.
 <24> The maximum number of connections to be used.
@@ -434,15 +384,13 @@ mongo: <76>
 <32> The number of upload threads used for asynchronous uploads from staging.
 <33> The interval for the remove job in seconds.
 <34> The interval for the retry job in seconds.
-<35> The configuration for a relational database blob store. The database
-     configured in the dbProp.properties file will be used.
+<35> The configuration for a relational database blob store. The database configured in the dbProp.properties file will be used.
 <36> Enables the use of a relational database for the blob store.
 <37> The configuration for an Azure blob store.
 <38> Enables the use of Azure for the blob store.
 <39> The Azure shared access signature token.
 <40> The Azure blob endpoint.
-<41> The Azure connection string. This overrides the `secureAccessSignature`
-     and `blobEndpoint` properties.
+<41> The Azure connection string. This overrides the `secureAccessSignature` and `blobEndpoint` properties.
 <42> The Azure storage account name.
 <43> The Azure storage account key.
 <44> The Azure blob storage container name. Required if enabled.
@@ -458,36 +406,24 @@ mongo: <76>
 <54> The interval for the remove job in seconds.
 <55> The interval for the retry job in seconds.
 <56> The configuration for the node store.
-<57> The cache size in MB. This is distributed among various caches used in
-     DocumentNodeStore.
+<57> The cache size in MB. This is distributed among various caches used in DocumentNodeStore.
 <58> Percentage of cache to be allocated towards the Node cache.
 <59> Percentage of cache to be allocated towards the Previous Document cache.
 <60> Percentage of cache to be allocated towards the Children cache.
 <61> Percentage of cache to be allocated towards the Diff cache.
-<62> The number of segments in the LIRS cache (default 16, a higher count
-     means higher concurrency but slightly lower cache hit rate).
-<63> The delay to move entries to the head of the queue in the LIRS cache
-     (default 16, a higher value means higher concurrency but slightly lower
-     cache hit rate).
+<62> The number of segments in the LIRS cache (default 16, a higher count means higher concurrency but slightly lower cache hit rate).
+<63> The delay to move entries to the head of the queue in the LIRS cache (default 16, a higher value means higher concurrency but slightly lower cache hit rate).
 <64> Flag that indicates if Node bundling is disabled.
-<65> Flag indicating if external changes should be pre-fetched in a
-     background thread.
-<66> Number of content updates that need to happen before the updates are
-     automatically purged to the private branch.
-<67> The max age (in milliseconds) that journal (for external changes)
-     entries are kept (older ones are candidates for gc).
+<65> Flag indicating if external changes should be pre-fetched in a background thread.
+<66> Number of content updates that need to happen before the updates are automatically purged to the private branch.
+<67> The max age (in milliseconds) that journal (for external changes) entries are kept (older ones are candidates for gc).
 <68> Paths which should be cached in persistent cache.
 <69> The path to the directory where the persistent cache will be stored.
-<70> The path to the directory where the persistent journal cache will be
-     stored.
-<71> The configuration for a Mongo DB node document store. If used, the
-     top-level `mongo` properties must also be configured.
+<70> The path to the directory where the persistent journal cache will be stored.
+<71> The configuration for a Mongo DB node document store. If used, the top-level `mongo` properties must also be configured.
 <72> Enables the use of a Mongo database for the document store.
-<73> Value in seconds. Determines the duration beyond which it can be safely
-     assumed that the state on the secondaries is consistent with the
-     primary, and it is safe to read from them.
-<74> The configuration for a relational database node store. The database
-     configured in the `dbProp.properties` file will be used.
+<73> Value in seconds. Determines the duration beyond which it can be safely assumed that the state on the secondaries is consistent with the primary, and it is safe to read from them.
+<74> The configuration for a relational database node store. The database configured in the `dbProp.properties` file will be used.
 <75> Enables the use of a relational database for the document node store.
 <76> The configuration for the Mongo DB connection.
 <77> The Mongo DB hostname and ports.
@@ -497,8 +433,7 @@ mongo: <76>
 <81> The authentication database, if different from the storage database.
 <82> The required replica set name.
 <83> Flag that indicates if an SSL connection should be used.
-<84> Flag that indicates if socket keep-alive should be enabled for
-     connections to MongoDB.
+<84> Flag that indicates if socket keep-alive should be enabled for connections to MongoDB.
 
 [[images-service]]
 === Service Images
@@ -515,8 +450,7 @@ The two service images are:
 | The scheduler.
 |===
 
-IMPORTANT: All server, scheduler, and initialization containers _must_ have
-the `/var/lib/inetsoft/shared` volume mapped to the same persistent storage.
+IMPORTANT: All server, scheduler, and initialization containers _must_ have the `/var/lib/inetsoft/shared` volume mapped to the same persistent storage.
 
 The only environment variables used by these images are:
 
@@ -524,8 +458,7 @@ The only environment variables used by these images are:
 | Variable | Description | Default Value
 
 | `INETSOFT_MASTER_PASSWORD`
-| The master encryption password. Must be the same across all server,
-  scheduler, and initialization containers.
+| The master encryption password. Must be the same across all server, scheduler, and initialization containers.
 | _None_
 
 | `INETSOFT_MASTER_SALT`
@@ -536,29 +469,24 @@ The only environment variables used by these images are:
 [[deploy]]
 == Deploying
 
-The provided images can be used to deploy the application into Docker or
-Kubernetes. The basic configuration options are similar in both deployment
-types.
+The provided images can be used to deploy the application into Docker or Kubernetes. The basic configuration options are similar in both deployment types.
 
 [[deploy-docker]]
 === Docker
 
-Deploying into Docker can be accomplished with a simple `docker-compose.yaml`
-file. An example is the `docker-compose.yaml` file in this repository.
+Deploying into Docker can be accomplished with a simple `docker-compose.yaml` file. An example is the `docker-compose.yaml` file in this repository.
 
 [[deploy-kubernetes]]
 === Kubernetes
 
-The InetSoft application should be deployed into its own namespace. For the
-purposes of this document, we will be using the `inetsoft` namespace.
+The InetSoft application should be deployed into its own namespace. For the purposes of this document, we will be using the `inetsoft` namespace.
 
 [source,shell]
 ----
 kubectl create namespace inetsoft
 ----
 
-You will need to create a secret containing the credentials used to
-authenticate with InetSoft's Docker registry.
+You will need to create a secret containing the credentials used to authenticate with InetSoft's Docker registry.
 
 [source,shell]
 ----
@@ -585,8 +513,7 @@ kubectl -n inetsoft create secret generic inetsoft-master-secret \
   --from-literal=password=your_master_password
 ----
 
-If your external configuration requires authentication, create a secret
-containing the credentials for it.
+If your external configuration requires authentication, create a secret containing the credentials for it.
 
 [source,shell]
 ----
@@ -595,9 +522,7 @@ kubectl -n inetsoft create secret generic inetsoft-config-secret \
   --from-literal=password=your_git_token
 ----
 
-You can use https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/[Kustomize]
-to manage the object manifests of the application. You can clone this
-repository and create an overlay to customize it for your use.
+You can use https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/[Kustomize] to manage the object manifests of the application. You can clone this repository and create an overlay to customize it for your use.
 
 [source,shell]
 ----
@@ -606,9 +531,7 @@ cd docker-k8s-config
 mkdir -p overlays/my_company
 ----
 
-An example overlay is included in this repository at `overlays/example`. Note
-that this deploys a database into the Kubernetes cluster, which may not be
-desirable in a production environment.
+An example overlay is included in this repository at `overlays/example`. Note that this deploys a database into the Kubernetes cluster, which may not be desirable in a production environment.
 
 Deploy your overlay to your cluster.
 
@@ -617,8 +540,7 @@ Deploy your overlay to your cluster.
 kubectl apply -k overlays/my_company
 ----
 
-If you want to try out the example overlay, you'll need to create a secret
-containing your license key.
+If you want to try out the example overlay, you'll need to create a secret containing your license key.
 
 [source,shell]
 ----
@@ -626,9 +548,7 @@ kubectl -n inetsoft create secret generic inetsoft-license-secret \
   --from-literal=license=your_license_key
 ----
 
-It also assumes that you have a dynamic provisioning enabled with a storage
-class named `nfs-client`. If this is not the case, you'll need to modify the
-configuration files to use an appropriate storage class.
+It also assumes that you have a dynamic provisioning enabled with a storage class named `nfs-client`. If this is not the case, you'll need to modify the configuration files to use an appropriate storage class.
 
 You can now deploy the example overlay to the cluster.
 
