@@ -1,6 +1,6 @@
 = Deploying InetSoft in Docker and Kubernetes
 InetSoft Technology <info@inetsoft.com>
-v1.0
+v2021
 :doctype: article
 :icons: font
 :source-highlighter: highlightjs
@@ -16,8 +16,7 @@ ifdef::env-github[]
 endif::[]
 
 IMPORTANT: This is preliminary documentation for the upcoming 2021 release of
-the InetSoft software. This document is subject to change, especially the
-details about how the Docker images are obtained.
+the InetSoft software. This document is subject to change pending release.
 
 [[overview]]
 == Overview
@@ -43,13 +42,13 @@ The three initialization images are:
 |===
 | Image | Description
 
-| `inetsoft-technology/init-db`
+| `docker.inetsoft.com/inetsoft/init-db`
 | Initializes a database data space.
 
-| `inetsoft-technology/init-fs`
+| `docker.inetsoft.com/inetsoft/init-fs`
 | Initializes a default file system data space.
 
-| `inetsoft-technology/init-oak`
+| `docker.inetsoft.com/inetsoft/init-oak`
 | Initializes a new data space based on Jackrabbit Oak that is optimized for
   use in Kubernetes.
 |===
@@ -509,10 +508,10 @@ The two service images are:
 |===
 | Image | Description
 
-| `inetsoft-technology/server`
+| `docker.inetsoft.com/inetsoft/server`
 | The application server.
 
-| `inetsoft-technology/scheduler`
+| `docker.inetsoft.com/inetsoft/scheduler`
 | The scheduler.
 |===
 
@@ -561,14 +560,12 @@ kubectl create namespace inetsoft
 You will need to create a secret containing the credentials used to
 authenticate with InetSoft's Docker registry.
 
-TODO: Update this with details when the public Docker registry is set up.
-
 [source,shell]
 ----
 kubectl -n inetsoft create secret docker-registry inetsoft-docker-secret \
   --docker-server=docker.inetsoft.com \
-  --docker-username=your_username \
-  --docker-password=your-password
+  --docker-username=your_email_address \
+  --docker-password=your_license_key
 ----
 
 Create secret containing your database credentials.
@@ -604,7 +601,7 @@ repository and create an overlay to customize it for your use.
 
 [source,shell]
 ----
-git clone https://github.com/inetsoft-technology/docker-k8s-config.git
+git clone https://github.com/docker.inetsoft.com/inetsoft/docker-k8s-config.git
 cd docker-k8s-config
 mkdir -p overlays/my_company
 ----

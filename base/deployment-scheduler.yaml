@@ -20,7 +20,7 @@ spec:
         - name: inetsoft-docker-secret
       containers:
         - name: inetsoft-scheduler
-          image: docker.inetsoft.com/inetsoft/scheduler:13.4.133301
+          image: docker.inetsoft.com/inetsoft/scheduler:2021
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -44,7 +44,7 @@ spec:
               name: inetsoft-shared
       initContainers:
         - name: inetsoft-init-scheduler
-          image: docker.inetsoft.com/inetsoft/init-oak:13.4.133301
+          image: docker.inetsoft.com/inetsoft/init-oak:2021
           imagePullPolicy: IfNotPresent
           resources:
             limits:

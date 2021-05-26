@@ -20,7 +20,7 @@ spec:
         - name: inetsoft-docker-secret
       containers:
         - name: inetsoft-server
-          image: docker.inetsoft.com/inetsoft/server:13.4.133301
+          image: docker.inetsoft.com/inetsoft/server:2021
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -56,7 +56,7 @@ spec:
               name: inetsoft-shared
       initContainers:
         - name: inetsoft-init-server
-          image: docker.inetsoft.com/inetsoft/init-oak:13.4.133301
+          image: docker.inetsoft.com/inetsoft/init-oak:2021
           imagePullPolicy: IfNotPresent
           resources:
             limits:
