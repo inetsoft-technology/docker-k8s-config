@@ -529,6 +529,11 @@ You can use https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomiza
 git clone https://github.com/docker.inetsoft.com/inetsoft/docker-k8s-config.git
 cd docker-k8s-config
 mkdir -p overlays/my_company
+cat << EOF > overlays/my_company/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: inetsoft
+EOF
 ----
 
 An example overlay is included in this repository at `overlays/example`. Note that this deploys a database into the Kubernetes cluster, which may not be desirable in a production environment.
@@ -563,3 +568,19 @@ You can delete the application from the cluster using kustomize as well.
 ----
 kubectl delete -k overlays/example
 ----
+
+[[deploy-cluster]]
+=== Cluster
+
+Deploying an InetSoft cluster to Kubernetes is very similar to a single server deployment. However, it is strongly recommended to use http://spark.apache.org/[Apache Spark] for materialization. InetSoft provides a Docker image, `docker.inetsoft.com/inetsoft/spark` for Spark containing the InetSoft libraries. Deploying Spark in Kubernetes in this way does not take advantage of data co-location, so it may be preferable to use an external Spark installation in a production environment.
+
+The prerequisites for deploying an InetSoft cluster are the same as those for a single instance, i.e. create the namespace and the secrets for the application.
+
+The `overlays/cluster` directory contains an example cluster overlay which can be used to deploy it to your Kubernetes cluster.
+
+[source,shell]
+----
+kubectl apply -k overlays/cluster
+----
+
+NOTE: This overlay only deploys a single scheduler instance. If you have a multiple scheduler license, you can deploy multiple scheduler instances by increasing the replication to the number of instances you have licensed.
