@@ -167,6 +167,13 @@ patchesStrategicMerge:
 [[quickstart-kubernetes-single-deploy]]
 ===== Deployment
 
+You can verify the final configuration by running:
+
+[source,shell]
+----
+kubectl kustomize overlays/quickstart
+----
+
 Deploy the application to Kubernetes by running:
 
 [source,shell]
@@ -361,6 +368,13 @@ patches:
 
 [[quickstart-kubernetes-cluster-deploy]]
 ===== Deployment
+
+You can verify the final configuration by running:
+
+[source,shell]
+----
+kubectl kustomize overlays/quickstart
+----
 
 Deploy the application to Kubernetes by running:
 
