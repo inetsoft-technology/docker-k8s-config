@@ -1,0 +1,411 @@
+= Container Configuration
+InetSoft Technology <info@inetsoft.com>
+v2021
+:doctype: article
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:tocLevels: 3
+:sectlinks:
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+IMPORTANT: This is preliminary documentation for the upcoming 2021 release of the InetSoft software. This document is subject to change pending release.
+
+[[overview]]
+== Overview
+
+Container environment variables and an external source of configuration files and scripts are used to configure the containers.
+
+NOTE: All configuration is done on the initialization containers. The only exception is the `INETSOFT_MASTER_PASSWORD` environment variable, which should be set on the initialization, scheduler, and server containers.
+
+[[variables]]
+== Configuration Variables
+
+The following variables are used to configure the software:
+
+|===
+| Variable | Description | Default Value
+
+| `INETSOFT_MASTER_PASSWORD`
+| The master encryption password.
+| _None_
+
+| `INETSOFT_MASTER_SALT`
+| The master password salt. Only used in FIPS mode.
+| _None_
+
+| `INETSOFT_FIPS`
+| Enables FIPS mode if `true`.
+| _None_
+
+| `INETSOFT_ADMIN_USER`
+| The default admin username.
+| `admin`
+
+| `INETSOFT_ADMIN_PASSWORD`
+| The default admin password.
+| `admin`
+
+| `INETSOFT_LICENSE`
+| The license key(s).
+| _None_
+
+| `INETSOFT_SCHEDULER_LICENSE`
+| The scheduler license keys(s).
+| _None_
+
+| `INETSOFT_SPARK_LICENSE`
+| The Spark license key(s).
+| _None_
+
+| `INETSOFT_DB_TYPE`
+| The type of internal database. Must be one of `SQLServer`, `Oracle`,   `Derby`, `DB2`, `PostgreSQL`, `MySQL`, or `H2`.
+| `H2`
+
+| `INETSOFT_DB_URL`
+| The JDBC URL for the internal database.
+| `jdbc:h2:/var/lib/inetsoft/shared/data/inetsoftdb;...`
+
+| `INETSOFT_DB_DRIVER`
+| The JDBC driver class for internal database.
+| `org.h2.Driver`
+
+| `INETSOFT_DB_USER`
+| The username for the internal database.
+| `inetsoft_admin`
+
+| `INETSOFT_DB_PASSWORD`
+| The password for the internal database.
+| `1Secret!`
+
+| `INETSOFT_CLUSTERED`
+| Enables the cluster server mode if `true`.
+| `false`
+
+| `INETSOFT_PROXY_URL`
+| The URL of the proxy server.
+| _None_
+
+| `INETSOFT_SPARK_ENABLED`
+| Enables the use of Spark for materialized views if `true`.
+| `false`
+
+| `INETSOFT_SPARK_MASTER_URL`
+| The URL of the Spark master node.
+| _None_
+
+| `INETSOFT_SPARK_WEBUI_PORT`
+| The Spark master web UI port number.
+| `8080`
+
+| `INETSOFT_SPARK_STORAGE_URL`
+| The URL of the Spark storage root directory. Must use the `hdfs`, `s3a`, `wasb`, or `gs` protocol.
+| _None_
+
+| `INETSOFT_SPARK_MAX_ROWS`
+| The maximum number of rows per table block.
+| `1000000`
+
+| `INETSOFT_SPARK_EXEC_MEMORY`
+| The amount of memory to allocate for Spark executors.
+| `1g`
+
+| `INETSOFT_SPARK_KRYO`
+| Enables the use of Kryo serialization in Spark.
+| `true`
+
+| `INETSOFT_K8S_API_SERVER`
+| The hostname and port of the Kuberentes API server.
+| `kubernetes.default.svc`
+
+| `INETSOFT_K8S_TOKEN`
+| The authentication token for the Kubernetes API server.
+| Read from the `/var/run/secrets/kubernetes.io/serviceaccount/token` file.
+
+| `INETSOFT_K8S_NAMESPACE`
+| The Kubernetes namespace into which the container is deployed.
+| Read from the `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file.
+
+| `INETSOFT_K8S_LABEL_NAME`
+| The name of the label used to identify InetSoft server and scheduler pods.
+| _None_
+
+| `INETSOFT_K8S_LABEL_VALUE`
+| The value of the label used to identify InetSoft server and scheduler pods.
+| _None_
+
+| `INETSOFT_DEBUG`
+| Enables debug logging if `true`.
+| _None_
+|===
+
+[[external-config]]
+== External Configuration
+
+External configuration can be supplied by mounting an external volume containing the configuration at `/var/lib/inetsoft/staging`, or by setting environment variables that control where the configuration is copied from.
+
+The external configuration can be copied from a Git repository or any location supported by https://commons.apache.org/proper/commons-vfs/filesystems.html[Apache Commons VFS].
+
+The environment variables specifying the location are as follows:
+
+|===
+| Variable | Description
+
+| `INETSOFT_CONFIG_URL`
+| The URL of the configuration.
+
+| `INETSOFT_CONFIG_USERNAME`
+| The username for the configuration URL.
+
+| `INETSOFT_CONFIG_PASSWORD`
+| The password for the configuration URL.
+
+| `INETSOFT_CONFIG_KEYFILE`
+| The location of the SSH key file. If specified, `INETSOFT_CONFIG_PASSWORD` should be the password for the key file, if required.
+
+| `INETSOFT_CONFIG_BRANCH`
+| The branch or tag if using the Git repository.
+
+| `INETSOFT_CONFIG_PATH`
+| The path, relative to the URL, containing the configuration. If not specified, the URL will be used as the base of the configuration.
+|===
+
+The URL for Git repositories should be prefixed with `git://`, for example, `git://http://host/...`, `git://https://host/...`, or `git://ssh://user@host:/...`.
+
+The URL may be for a directory containing the external configuration or an archive file containing the external configuration. Any archive file format supported by https://commons.apache.org/proper/commons-compress/[Apache Commons Compress] may be used, including GZIPed archives of supported formats (e.g. `*.tar.gz`).
+
+HTTP and HTTPS do not support directory listing, so if using one of these protocols, it _must_ be for an archive file.
+
+If you are mounting the external configuration to the `/var/lib/inetsoft/staging` volume, the URL should be set to `file:///var/lib/inetsoft/staging`. The `file:` protocol should not be used otherwise.
+
+The external configuration may contain the following directories:
+
+|===
+| Directory | Description
+
+| `assets/`
+| Asset ZIP files that will be imported into the repository.
+
+| `config/`
+| Files to be placed in the data space. It may include an `asset.dat.d` directory containing assets. This is essentially a local `sree.home` directory.
+
+| `drivers/`
+| Additional JDBC drivers.
+
+| `lib/`
+| Additional JAR files that should be added to the application class path.
+
+| `plugins/`
+| Additional plugins.
+
+| `scripts/`
+| Additional or overridden initialization scripts.
+|===
+
+An example of an external configuration can be found in the `config/`
+directory of this repository.
+
+[[scripts]]
+=== Initialization Scripts
+
+Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts that are named using a convention that will ensure the order of their execution. For example, `00-start.sh` would be executed first and `99-finish.groovy` would be executed last.
+
+The script that copies the files from the staging directory to the shared directory, database, or Oak repository should be named `50-stage.groovy` or `50-stage.sh`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
+
+The following script levels are reserved by pre-defined scripts:
+
+* `00` - initializes the base properties and passwords.
+* `49` - stages the shared files that are outside the data space, e.g. plugins and drivers.
+* `50` - installs files from staging into the data space.
+* `51` - re-encrypts the admin password to ensure FIPS compliance.
+* `75` - imports all assets from `staging/assets` into the data space.
+
+This convention allows external configurations to customize the configuration during various phases of the initialization process. For example, a script named `01-remove-extras.sh` could delete unwanted drivers or plugins from the staging directory. A script named `76-set-passwords.groovy` could change the username and password of a data source.
+
+[[oak]]
+=== Oak Configuration
+
+By default, Oak is configured using the internal database for the document node store and a file blob store with sensible file paths. If you want to use MongoDB for the document node store or a different blob store, you'll need to include a custom `config/oak-config.yaml` file in your external configuration.
+
+The Oak configuration file has the following structure:
+
+.oak-config.yaml
+[source,yaml]
+----
+blob: # <1>
+  file: # <2>
+    enabled: false # <3>
+    baseDir: '/var/lib/inetsoft/shared/oak' # <4>
+    cacheEnabled: false # <5>
+    cache: # <6>
+      cacheDir: '/var/lib/inetsoft/local/oak/{instance}/blob' # <7>
+      cacheSize: 68719476736 # <8>
+      stagingSplitPercentage: 10 # <9>
+      uploadThreads: 10 # <10>
+      stagingPurgeInterval: 300 # <11>
+      stagingRetryInterval: 600 # <12>
+  mongo: # <13>
+    enabled: false # <14>
+  s3: # <15>
+    enabled: false # <16>
+    accessKey: '' # <17>
+    secretKey: '' # <18>
+    bucket: '' # <19>
+    region: '' # <20>
+    endpoint: '' # <21>
+    connectionTimeout: 0 # <22>
+    socketTimeout: 0 # <23>
+    maxConnections: 0 # <24>
+    maxErrorRetry: 0 # <25>
+    writeThreads: 10 # <26>
+    renameKeys: false # <27>
+    cache: # <28>
+      cacheDir: '' # <29>
+      cacheSize: 68719476736 # <30>
+      stagingSplitPercentage: 10 # <31>
+      uploadThreads: 10 # <32>
+      stagingPurgeInterval: 300 # <33>
+      stagingRetryInterval: 600 # <34>
+  rdb: # <35>
+    enabled: false # <36>
+  azure: # <37>
+    enabled: false # <38>
+    secureAccessSignature: '' # <39>
+    blobEndpoint: '' # <40>
+    connectionString: '' # <41>
+    accountName: '' # <42>
+    accountKey: '' # <43>
+    container: '' # <44>
+    createContainer: true # <45>
+    maxConnections: 2 # <46>
+    socketTimeout: 3 # <47>
+    maxErrorRetry: -1 # <48>
+    cache: # <49>
+      cacheDir: '' # <50>
+      cacheSize: 68719476736 # <51>
+      stagingSplitPercentage: 10 # <52>
+      uploadThreads: 10 # <53>
+      stagingPurgeInterval: 300 # <54>
+      stagingRetryInterval: 600 # <55>
+node: # <56>
+  memoryCacheSize: 256 # <57>
+  nodeCachePercentage: 35 # <58>
+  prevDocCachePercentage: 4 # <59>
+  childrenCachePercentage: 15 # <60>
+  diffCachePercentage: 30 # <61>
+  cacheSegmentCount: 16 # <62>
+  cacheStackMoveDistance: 16 # <63>
+  bundlingDisabled: false # <64>
+  prefetchExternalChanges: false # <65>
+  updateLimit: 100000 # <66>
+  journalGcMaxAge: 86400000 # <67>
+  persistentCacheIncludes: # <68>
+    - '/'
+  cachePath: '/var/lib/inetsoft/local/oak/{instance}/node' # <69>
+  journalPath: '/var/lib/inetsoft/local/oak/{instance}/journal' # <70>
+  mongo: # <71>
+    enabled: false # <72>
+    maxReplicationLog: 21600 # <73>
+  rdb: # <74>
+    enabled: false # <75>
+mongo: # <76>
+  hosts: # <77>
+    - 'localhost:27017'
+  database: '' # <78>
+  user: '' # <79>
+  password: '' # <80>
+  authDatabase: '' # <81>
+  replicaSet: '' # <82>
+  ssl: false # <83>
+  socketKeepAlive: true # <84>
+----
+<1> The configuration for the blob store.
+<2> Configuration for a file-based blob store.
+<3> Enables the use of the file system for the blob store.
+<4> The base directory where the blobs are created.
+<5> Enables the local file cache. Should only be used when `baseDir` is on a network file system.
+<6> Configuration for the local file cache. Required if `cacheEnabled` is `true`.
+<7> The root directory of the blob cache. Required.
+<8> The maximum size of the cache in bytes.
+<9> The percent of the cache utilized for upload staging.
+<10> The number of upload threads used for asynchronous uploads from staging.
+<11> The interval for the remove job in seconds.
+<12> The interval for the retry job in seconds.
+<13> The configuration for a MongoDB blob store. If used, the top-level `mongo` properties must also be configured.
+<14> Enables the use of a Mongo database for the blob store.
+<15> The configuration for an S3 blob store.
+<16> Enables the use of an S3 bucket for the blob store.
+<17> The AWS access key. If not specified, it will use the default credential discovery of the AWS SDK.
+<18> The AWS secret key. If not specified, it will use the default credential discovery of the AWS SDK.
+<19> The S3 bucket name. Required if `enabled` is true.
+<20> The AWS region. If not specified, it will use the default region discovery of the AWS SDK.
+<21> The AWS API endpoint. If not specified, the default endpoint for the S3 service in the region will be used.
+<22> The connection timeout.
+<23> The socket timeout.
+<24> The maximum number of connections to be used.
+<25> The maximum number of retries.
+<26> The number of threads used to write objects.
+<27> Flag that enables renaming of object keys in S3 concurrently.
+<28> Configuration for the local file cache. Required.
+<29> The root directory of the blob cache. Required.
+<30> The maximum size of the cache in bytes.
+<31> The percent of the cache utilized for upload staging.
+<32> The number of upload threads used for asynchronous uploads from staging.
+<33> The interval for the remove job in seconds.
+<34> The interval for the retry job in seconds.
+<35> The configuration for a relational database blob store. The database configured in the dbProp.properties file will be used.
+<36> Enables the use of a relational database for the blob store.
+<37> The configuration for an Azure blob store.
+<38> Enables the use of Azure for the blob store.
+<39> The Azure shared access signature token.
+<40> The Azure blob endpoint.
+<41> The Azure connection string. This overrides the `secureAccessSignature` and `blobEndpoint` properties.
+<42> The Azure storage account name.
+<43> The Azure storage account key.
+<44> The Azure blob storage container name. Required if enabled.
+<45> Flag that indicates if the container should be created if it doesn't exist.
+<46> The maximum number of connections per operation.
+<47> The request timeout.
+<48> The maximum number of retries per request.
+<49> Configuration for the local file cache. Required.
+<50> The root directory of the blob cache. Required.
+<51> The maximum size of the cache in bytes.
+<52> The percent of the cache utilized for upload staging.
+<53> The number of upload threads used for asynchronous uploads from staging.
+<54> The interval for the remove job in seconds.
+<55> The interval for the retry job in seconds.
+<56> The configuration for the node store.
+<57> The cache size in MB. This is distributed among various caches used in DocumentNodeStore.
+<58> Percentage of cache to be allocated towards the Node cache.
+<59> Percentage of cache to be allocated towards the Previous Document cache.
+<60> Percentage of cache to be allocated towards the Children cache.
+<61> Percentage of cache to be allocated towards the Diff cache.
+<62> The number of segments in the LIRS cache (default 16, a higher count means higher concurrency but slightly lower cache hit rate).
+<63> The delay to move entries to the head of the queue in the LIRS cache (default 16, a higher value means higher concurrency but slightly lower cache hit rate).
+<64> Flag that indicates if Node bundling is disabled.
+<65> Flag indicating if external changes should be pre-fetched in a background thread.
+<66> Number of content updates that need to happen before the updates are automatically purged to the private branch.
+<67> The max age (in milliseconds) that journal (for external changes) entries are kept (older ones are candidates for gc).
+<68> Paths which should be cached in persistent cache.
+<69> The path to the directory where the persistent cache will be stored.
+<70> The path to the directory where the persistent journal cache will be stored.
+<71> The configuration for a Mongo DB node document store. If used, the top-level `mongo` properties must also be configured.
+<72> Enables the use of a Mongo database for the document store.
+<73> Value in seconds. Determines the duration beyond which it can be safely assumed that the state on the secondaries is consistent with the primary, and it is safe to read from them.
+<74> The configuration for a relational database node store. The database configured in the `dbProp.properties` file will be used.
+<75> Enables the use of a relational database for the document node store.
+<76> The configuration for the Mongo DB connection.
+<77> The Mongo DB hostname and ports.
+<78> The name of the database. Required if Mongo is used.
+<79> The username used for authentication.
+<80> The password used for authentication.
+<81> The authentication database, if different from the storage database.
+<82> The required replica set name.
+<83> Flag that indicates if an SSL connection should be used.
+<84> Flag that indicates if socket keep-alive should be enabled for connections to MongoDB.

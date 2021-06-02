@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: inetsoft-mysql-pvc
 spec:
-  storageClassName: nfs-client
+  storageClassName: standard
   accessModes:
     - ReadWriteMany
   resources:

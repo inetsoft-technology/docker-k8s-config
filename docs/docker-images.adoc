@@ -1,0 +1,76 @@
+= InetSoft Docker Images
+InetSoft Technology <info@inetsoft.com>
+v2021
+:doctype: article
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:tocLevels: 3
+:sectlinks:
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+IMPORTANT: This is preliminary documentation for the upcoming 2021 release of the InetSoft software. This document is subject to change pending release.
+
+[[overview]]
+== Overview
+
+Three initialization images and two service images are provided. The initialization images are intended for use as a sidecar container that performs a one-time configuration that may be customized without creating any new images. The service images are used to run the server and scheduler.
+
+[[init-images]]
+== Initialization Images
+
+The three initialization images are:
+
+|===
+| Image | Description
+
+| `docker.inetsoft.com/inetsoft/init-db`
+| Initializes a database data space.
+
+| `docker.inetsoft.com/inetsoft/init-fs`
+| Initializes a default file system data space.
+
+| `docker.inetsoft.com/inetsoft/init-oak`
+| Initializes a new data space based on   http://jackrabbit.apache.org/oak/[Apache Jackrabbit Oak] that is optimized   for use in Kubernetes.
+|===
+
+All initialization images _must_ mount a volume at `/var/lib/inetsoft/shared`. This volume must be shared with the server and scheduler containers.
+
+NOTE: It is strongly recommended that the Oak data space is used in Kubernetes or a clustered deployment in Docker.
+
+[[service-images]]
+== Service Images
+
+The two service images are:
+
+|===
+| Image | Description
+
+| `docker.inetsoft.com/inetsoft/server`
+| The application server.
+
+| `docker.inetsoft.com/inetsoft/scheduler`
+| The scheduler.
+|===
+
+IMPORTANT: All server, scheduler, and initialization containers _must_ have the `/var/lib/inetsoft/shared` volume mapped to the same persistent storage.
+
+The only environment variables used by these images are:
+
+|===
+| Variable | Description | Default Value
+
+| `INETSOFT_MASTER_PASSWORD`
+| The master encryption password. Must be the same across all server, scheduler, and initialization containers.
+| _None_
+
+| `INETSOFT_MASTER_SALT`
+| The master password salt. Only used in FIPS mode.
+| _None_
+|===

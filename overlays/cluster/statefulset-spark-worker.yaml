@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: inetsoft-spark-worker
+spec:
+  selector:
+    matchLabels:
+      app: inetsoft-spark-worker
+  serviceName: inetsoft-spark-worker
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: inetsoft-spark-worker
+    spec:
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: inetsoft-docker-secret
+      containers:
+        - name: inetsoft-spark-worker
+          image: docker.inetsoft.com/inetsoft/spark:2021
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          ports:
+            - name: spark-webui
+              containerPort: 8081
+              protocol: TCP
+            - name: hadoop-data
+              containerPort: 9866
+              protocol: TCP
+            - name: hadoop-service
+              containerPort: 9867
+              protocol: TCP
+            - name: hadoop-webui
+              containerPort: 9864
+          env:
+            - name: SPARK_MASTER_URL
+              value: inetsoft-spark-master:7077
+            - name: SPARK_WORKER_MEMORY
+              value: 2G
+            - name: SPARK_WORKER_CORES
+              value: "2"
+            - name: HADOOP_NAMENODE
+              value: inetsoft-spark-master
+          volumeMounts:
+            - mountPath: "/var/lib/hadoop"
+              name: hadoop-data
+  volumeClaimTemplates:
+    - metadata:
+        name: hadoop-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 1Gi

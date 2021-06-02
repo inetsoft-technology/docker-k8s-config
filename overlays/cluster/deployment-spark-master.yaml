@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inetsoft-spark-master
+  labels:
+    app: inetsoft-spark-master
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: inetsoft-spark-master
+  template:
+    metadata:
+      labels:
+        app: inetsoft-spark-master
+    spec:
+      imagePullSecrets:
+        - name: inetsoft-docker-secret
+      containers:
+        - name: inetsoft-spark-master
+          image: docker.inetsoft.com/inetsoft/spark:2021
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          ports:
+            - name: spark
+              containerPort: 7077
+              protocol: TCP
+            - name: spark-webui
+              containerPort: 8080
+              protocol: TCP
+            - name: hadoop-namenode
+              containerPort: 8020
+              protocol: TCP
+            - name: hadoop-webui
+              containerPort: 9870
+              protocol: TCP
+          args:
+            - master
+          volumeMounts:
+            - mountPath: "/var/lib/hadoop"
+              name: hadoop-data
+      volumes:
+        - name: hadoop-data
+          persistentVolumeClaim:
+            claimName: inetsoft-spark-master-pvc

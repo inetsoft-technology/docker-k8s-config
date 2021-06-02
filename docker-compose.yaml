@@ -12,7 +12,7 @@ services:
     volumes:
       - ./postgres:/var/lib/postgresql/data/pgdata
   init:
-    image: 'docker.inetsoft.com/inetsoft/init-oak:13.4.133287'
+    image: 'docker.inetsoft.com/inetsoft/init-oak:2021'
     depends_on:
       - postgresql
     deploy:
@@ -21,24 +21,23 @@ services:
     volumes:
       - ./shared:/var/lib/inetsoft/shared
     environment:
-      INETSOFT_MASTER_PASSWORD: dontsharethis
-      INETSOFT_LICENSE: your_license_key
-      INETSOFT_CONFIG_URL: git://https://github.com/my_company/inetsoft-config.git
-      INETSOFT_CONFIG_USERNAME: my_git_user
-      INETSOFT_CONFIG_PASSWORD: my_git_token
+      INETSOFT_MASTER_PASSWORD: ${INETSOFT_MASTER_PASSWORD:?err}
+      INETSOFT_LICENSE: ${INETSOFT_LICENSE:?err}
+      INETSOFT_CONFIG_URL: git://https://github.com/inetsoft-technology/docker-k8s-config.git
+      INETSOFT_CONFIG_PATH: config
       INETSOFT_DB_TYPE: PostgreSQL
       INETSOFT_DB_URL: jdbc:postgresql://postgresql:5432/inetsoft
       INETSOFT_DB_DRIVER: org.postgresql.Driver
       INETSOFT_DB_USER: inetsoft
       INETSOFT_DB_PASSWORD: secret
   server:
-    image: 'docker.inetsoft.com/inetsoft/server:13.4.133287'
+    image: 'docker.inetsoft.com/inetsoft/server:2021'
     depends_on:
       - init
     volumes:
       - ./shared:/var/lib/inetsoft/shared
     environment:
-      INETSOFT_MASTER_PASSWORD: dontsharethis
+      INETSOFT_MASTER_PASSWORD: ${INETSOFT_MASTER_PASSWORD:?err}
     ports:
       - '8080:8080'
     entrypoint: [ "/usr/local/inetsoft/bin/wait-for-file.sh", "/var/lib/inetsoft/shared/.config-complete", "/usr/local/inetsoft/bin/start-server.sh" ]
@@ -48,13 +47,13 @@ services:
           cpus: 2
           memory: 2G
   scheduler:
-    image: 'docker.inetsoft.com/inetsoft/scheduler:13.4.133287'
+    image: 'docker.inetsoft.com/inetsoft/scheduler:2021'
     depends_on:
       - init
     volumes:
       - ./shared:/var/lib/inetsoft/shared
     environment:
-      INETSOFT_MASTER_PASSWORD: dontsharethis
+      INETSOFT_MASTER_PASSWORD: ${INETSOFT_MASTER_PASSWORD:?err}
     entrypoint: [ "/usr/local/inetsoft/bin/wait-for-file.sh", "/var/lib/inetsoft/shared/.config-complete", "/usr/local/inetsoft/bin/start-scheduler.sh" ]
     deploy:
       resources:

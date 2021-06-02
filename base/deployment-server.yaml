@@ -49,8 +49,8 @@ spec:
             - name: INETSOFT_MASTER_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: inetsoft-master-secret
-                  key: password
+                  key: INETSOFT_MASTER_PASSWORD
+                  name: inetsoft
           volumeMounts:
             - mountPath: "/var/lib/inetsoft/shared"
               name: inetsoft-shared
@@ -62,6 +62,11 @@ spec:
             limits:
               memory: "2Gi"
               cpu: "2"
+          envFrom:
+            - configMapRef:
+                name: inetsoft
+            - secretRef:
+                name: inetsoft
           volumeMounts:
             - mountPath: "/var/lib/inetsoft/shared"
               name: inetsoft-shared
