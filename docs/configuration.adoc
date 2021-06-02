@@ -148,7 +148,7 @@ The following variables are used to configure the software:
 [[external-config]]
 == External Configuration
 
-External configuration can be supplied by mounting an external volume containing the configuration at `/var/lib/inetsoft/staging`, or by setting environment variables that control where the configuration is copied from.
+External configuration can be supplied by mounting an external volume containing the configuration at `/var/lib/inetsoft/external`, or by setting environment variables that control where the configuration is copied from.
 
 The external configuration can be copied from a Git repository or any location supported by https://commons.apache.org/proper/commons-vfs/filesystems.html[Apache Commons VFS].
 
@@ -182,7 +182,7 @@ The URL may be for a directory containing the external configuration or an archi
 
 HTTP and HTTPS do not support directory listing, so if using one of these protocols, it _must_ be for an archive file.
 
-If you are mounting the external configuration to the `/var/lib/inetsoft/staging` volume, the URL should be set to `file:///var/lib/inetsoft/staging`. The `file:` protocol should not be used otherwise.
+If you are mounting the external configuration to the `/var/lib/inetsoft/external` volume, the URL should be set to `file:///var/lib/inetsoft/external`. The `file:` protocol should not be used otherwise.
 
 The external configuration may contain the following directories:
 
