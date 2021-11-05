@@ -11,7 +11,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   rules:
-    - host: k8s.inetsoft.com
+    - host: inetsoft.your-company.com
       http:
         paths:
           - pathType: Prefix

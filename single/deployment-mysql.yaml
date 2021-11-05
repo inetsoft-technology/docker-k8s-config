@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inetsoft-mysql
+  labels:
+    app: inetsoft-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inetsoft-mysql
+  template:
+    metadata:
+      labels:
+        app: inetsoft-mysql
+    spec:
+      containers:
+        - name: inetsoft-mysql
+          image: mysql:5
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "2"
+            limits:
+              memory: "1Gi"
+              cpu: "2"
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_DB_PASSWORD
+                  name: inetsoft
+            - name: MYSQL_DATABASE
+              value: inetsoft
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_DB_USER
+                  name: inetsoft
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_DB_PASSWORD
+                  name: inetsoft
+          volumeMounts:
+            - mountPath: "/var/lib/mysql"
+              name: mysqldata
+      volumes:
+        - name: mysqldata
+          persistentVolumeClaim:
+            claimName: inetsoft-mysql-pvc

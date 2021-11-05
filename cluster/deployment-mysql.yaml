@@ -31,13 +31,22 @@ spec:
               protocol: TCP
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: secret
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_DB_PASSWORD
+                  name: inetsoft
             - name: MYSQL_DATABASE
               value: inetsoft
             - name: MYSQL_USER
-              value: inetsoft
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_DB_USER
+                  name: inetsoft
             - name: MYSQL_PASSWORD
-              value: secret
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_DB_PASSWORD
+                  name: inetsoft
           volumeMounts:
             - mountPath: "/var/lib/mysql"
               name: mysqldata

@@ -1,26 +1,26 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: inetsoft-scheduler
-  labels:
-    app: inetsoft-scheduler
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: inetsoft-scheduler
+  serviceName: inetsoft-scheduler
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
         app: inetsoft-scheduler
-        inetsoftClusterNode: "true"
     spec:
-      serviceAccountName: inetsoft
+      terminationGracePeriodSeconds: 10
       imagePullSecrets:
         - name: inetsoft-docker-secret
       containers:
         - name: inetsoft-scheduler
-          image: docker.inetsoft.com/inetsoft/scheduler:2021
+          image: docker.inetsoft.com/inetsoft/scheduler:2021.0.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -33,6 +33,31 @@ spec:
             - name: rmi
               containerPort: 1099
               protocol: TCP
+          startupProbe:
+            exec:
+              command:
+                - /usr/local/inetsoft/bin/probe.sh
+                - readiness
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 30
+            timeoutSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - /usr/local/inetsoft/bin/probe.sh
+                - liveness
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - /usr/local/inetsoft/bin/probe.sh
+                - readiness
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
           env:
             - name: INETSOFT_MASTER_PASSWORD
               valueFrom:
@@ -42,9 +67,11 @@ spec:
           volumeMounts:
             - mountPath: "/var/lib/inetsoft/shared"
               name: inetsoft-shared
+            - mountPath: "/var/lib/inetsoft/local/bs"
+              name: inetsoft-mv
       initContainers:
         - name: inetsoft-init-scheduler
-          image: docker.inetsoft.com/inetsoft/init-oak:2021
+          image: docker.inetsoft.com/inetsoft/init-oak:2021.0.0
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -62,3 +89,13 @@ spec:
         - name: inetsoft-shared
           persistentVolumeClaim:
             claimName: inetsoft-shared-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: inetsoft-mv
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 100Mi

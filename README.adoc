@@ -7,6 +7,7 @@ v2021
 :toc: left
 :tocLevels: 3
 :sectlinks:
+:imagesdir: docs/images
 ifdef::env-github[]
 :tip-caption: :bulb:
 :note-caption: :information_source:
@@ -15,12 +16,32 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-IMPORTANT: This is preliminary documentation for the upcoming 2021 release of the InetSoft software. This document is subject to change pending release.
-
 [[overview]]
 == Overview
 
 InetSoft provides a set of images designed for use in Docker or deployment to a Kubernetes cluster. InetSoft only supports Docker and Kubernetes using these images. Customer-developed images will not be supported as part of the standard support contract.
+
+[[getting-access]]
+== Get Access to the Docker Registry
+
+To be able to use the Docker images, you need to contact InetSoft support and request access to the Docker registry. You will receive an email containing a temporary password and a link. Open the link in a web browser, log in using the temporary password, and then enter a new password. Once that is complete, you will be prompted to enter a username for the Docker registry. Please use your first name and last name, all lowercase with no spaces.
+
+image::set_username.png[Choose a username]
+
+After clicking save, open your user profile:
+
+image::open_user_profile.png[Open your user profile]
+
+Copy the "CLI Secret" field from this screen.
+
+image::copy_cli_secret.png[Copy CLI secret]
+
+You can then use the username and copied secret to log into the docker registry:
+
+[source,shell]
+----
+docker login docker.inetsoft.com -u your_username -p your_cli_secret
+----
 
 [[quickstart]]
 == Quickstart
@@ -53,6 +74,13 @@ INETSOFT_LICENSE=your_server_license
 INETSOFT_MASTER_PASSWORD=a_strong_password
 ----
 
+Create the directory in which the configuration will be saved:
+
+[source,shell]
+----
+mkdir shared
+----
+
 Finally, run the Docker Compose application:
 
 [source,shell]
@@ -78,8 +106,8 @@ Next, create a secret containing the credentials for the InetSoft Docker registr
 ----
 kubectl -n inetsoft create secret docker-registry inetsoft-docker-secret \
   --docker-server=docker.inetsoft.com \
-  --docker-username=your_email_address \
-  --docker-password=a_valid_license_key
+  --docker-username=your_username \
+  --docker-password=your_cli_secret
 ----
 
 There are two types of example deployments: a single server deployment and a server cluster deployment.
@@ -96,19 +124,20 @@ Create an overlay directory for the example deployment.
 
 [source,shell]
 ----
-mkdir -p overlays/quickstart
+mkdir -p overlays/single
 ----
 
-Create the Kustomize configuration for the overlay at `overlays/quickstart/kustomization.yaml` with the following content:
+Create the Kustomize configuration for the overlay at `overlays/single/kustomization.yaml` with the following content:
 
-.overlays/quickstart/kustomization.yaml
+.overlays/single/kustomization.yaml
 [source,yaml]
+
 ----
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: inetsoft
 bases:
-  - ../../base
+  - ../../single
 secretGenerator:
   - name: inetsoft
     behavior: merge
@@ -116,9 +145,9 @@ secretGenerator:
       - secrets.properties
 ----
 
-Override the master password and license key secrets with a unique password and your server license key, respectively. Put these in the `overlays/quickstart/secrets.properties` file.
+Override the master password and license key secrets with a unique password and your server license key, respectively. Put these in the `overlays/single/secrets.properties` file.
 
-.overlays/quickstart/secrets.properties
+.overlays/single/secrets.properties
 [source,properties]
 ----
 INETSOFT_MASTER_PASSWORD=a_strong_password
@@ -128,9 +157,9 @@ INETSOFT_LICENSE=your_server_license_key
 [[quickstart-kubernetes-single-pvc]]
 ===== Persistent Volume Provisioning
 
-As configured, the example uses the `standard` storage class for Minikube. If your cluster uses a different storage class for dynamic provisioning, you'll need to override this in the `pvc-mysql.yaml` and `pvc-shared.yaml` files. For example, if you are using a NFS provisioner with the storage class `nfs-client`, create a file named `overlays/quickstart/pvc-mysql.yaml` with the following content:
+As configured, the example uses the `standard` storage class for Minikube. If your cluster uses a different storage class for dynamic provisioning, you'll need to override this in the `pvc-mysql.yaml` and `pvc-shared.yaml` files. For example, if you are using a NFS provisioner with the storage class `nfs-client`, create a file named `overlays/single/pvc-mysql.yaml` with the following content:
 
-.overlays/quickstart/pvc-mysql.yaml
+.overlays/single/pvc-mysql.yaml
 [source,yaml]
 ----
 apiVersion: v1
@@ -141,9 +170,9 @@ spec:
   storageClassName: nfs-client
 ----
 
-Then create a file named `overlays/quickstart/pvc-shared.yaml` with the following content:
+Then create a file named `overlays/single/pvc-shared.yaml` with the following content:
 
-.overlays/quickstart/pvc-shared.yaml
+.overlays/single/pvc-shared.yaml
 [source,yaml]
 ----
 apiVersion: v1
@@ -154,9 +183,9 @@ spec:
   storageClassName: nfs-client
 ----
 
-Then, append the following to `overlays/quickstart/kustomization.yaml`:
+Then, append the following to `overlays/single/kustomization.yaml`:
 
-.overlays/quickstart/kustomization.yaml
+.overlays/single/kustomization.yaml
 [source,yaml]
 ----
 patchesStrategicMerge:
@@ -171,29 +200,72 @@ You can verify the final configuration by running:
 
 [source,shell]
 ----
-kubectl kustomize overlays/quickstart
+kubectl kustomize overlays/single
 ----
 
 Deploy the application to Kubernetes by running:
 
 [source,shell]
 ----
-kubectl apply -k overlays/quickstart
+kubectl apply -k overlays/single
 ----
+
+If you're running in Minikube, open a new terminal window and run:
+
+[source,shell]
+----
+minikube tunnel
+----
+
+You will see output like:
+
+[source]
+----
+Status:
+	machine: minikube
+	pid: 116635
+	route: 10.96.0.0/12 -> 192.168.49.2
+	minikube: Running
+	services: [inetsoft-server]
+    errors:
+		minikube: no errors
+		router: no errors
+		loadbalancer emulator: no errors
+----
+
+Make note of the address on the right-hand side of the route. In this example, it is `192.168.49.2`. Get the service port by running:
+
+[source,shell]
+----
+kubectl -n inetsoft get service
+----
+
+You will see output like:
+
+[source]
+----
+NAME              TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)          AGE
+inetsoft-mysql    ClusterIP      10.107.139.33   <none>          3306/TCP         102s
+inetsoft-server   LoadBalancer   10.97.182.120   10.97.182.120   8080:31542/TCP   102s
+----
+
+Get the external port number for the inetsoft-server service. In this example, the port number is `31542`. Use the IP address and port number to access the InetSoft server. In this example, this would be `\http://192.168.49.2:31542/`.
 
 Remove the application by running:
 
 [source,shell]
 ----
-kubectl delete -k overlays/quickstart
+kubectl delete -k overlays/single
 ----
 
 [[quickstart-kubernetes-cluster]]
 ==== Server Cluster
 
-The cluster example deploys two server instances and an https://spark.apache.org/[Apache Spark] cluster with two worker nodes. This requires a pooled (concurrent session or named user license) or two CPU licenses for two cores each. In order to use two Spark worker nodes, you must provide a Spark license key for two worker nodes or reduce the number of worker nodes to one.
+The cluster example deploys two server instances and a scheduler instance. This requires a pooled (concurrent session or named user license) or two CPU licenses for two cores each.
 
-IMPORTANT: Minikube is insufficient to run this cluster deployment. You will need to deploy to a Kubernetes cluster with adequate CPU and memory resources available.
+If you're using Minikube, you'll need to enable the [ingress]https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/ and [ingress-dns]https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/ addons.
+
+IMPORTANT: The default configuration of Minikube may be insufficient to run the cluster. You may need to increase the number CPUs and memory allocated to Minikube.
 
 [[quickstart-kubernetes-cluster-config]]
 ===== Configuration
@@ -202,12 +274,12 @@ Create an overlay directory for the example deployment.
 
 [source,shell]
 ----
-mkdir -p overlays/quickstart
+mkdir -p overlays/cluster
 ----
 
-Create the Kustomize configuration for the overlay at `overlays/quickstart/kustomization.yaml` with the following content:
+Create the Kustomize configuration for the overlay at `overlays/cluster/kustomization.yaml` with the following content:
 
-.overlays/quickstart/kustomization.yaml
+.overlays/cluster/kustomization.yaml
 [source,yaml]
 ----
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -222,22 +294,21 @@ secretGenerator:
       - secrets.properties
 ----
 
-Override the master password, server license key, and Spark license key secrets with a unique password, your server license key, and your Spark license key, respectively. Put these in the `overlays/quickstart/secrets.properties` file. If you do not have a Spark license key, omit the `INETSOFT_SPARK_LICENSE` property.
+Override the master password and server license key with a unique password and your server license key, respectively. Put these in the `overlays/cluster/secrets.properties` file.
 
-.overlays/quickstart/secrets.properties
+.overlays/cluster/secrets.properties
 [source,properties]
 ----
 INETSOFT_MASTER_PASSWORD=a_strong_password
 INETSOFT_LICENSE=your_server_license_key
-INETSOFT_SPARK_LICENSE=your_spark_license_key
 ----
 
 [[quickstart-kubernetes-cluster-pv]]
 ===== Persistent Volume Provisioning
 
-As configured, the example uses the `standard` storage class for Minikube. If your cluster uses a different storage class for dynamic provisioning, you'll need to override this. For example, if you are using a NFS provisioner with the storage class `nfs-client`, create a file named `overlays/quickstart/pvc-mysql.yaml` with the following content:
+As configured, the example uses the `standard` storage class for Minikube. If your cluster uses a different storage class for dynamic provisioning, you'll need to override this. For example, if you are using a NFS provisioner with the storage class `nfs-client`, create a file named `overlays/cluster/pvc-mysql.yaml` with the following content:
 
-.overlays/quickstart/pvc-mysql.yaml
+.overlays/cluster/pvc-mysql.yaml
 [source,yaml]
 ----
 apiVersion: v1
@@ -248,9 +319,9 @@ spec:
   storageClassName: nfs-client
 ----
 
-Create a file named `overlays/quickstart/pvc-shared.yaml` with the following content:
+Create a file named `overlays/cluster/pvc-shared.yaml` with the following content:
 
-.overlays/quickstart/pvc-shared.yaml
+.overlays/cluster/pvc-shared.yaml
 [source,yaml]
 ----
 apiVersion: v1
@@ -261,87 +332,64 @@ spec:
   storageClassName: nfs-client
 ----
 
-Create a file named `overlays/quickstart/pvc-spark-master.yaml` with the following content:
-
-.overlays/quickstart/pvc-spark-master.yaml
-[source,yaml]
-----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: inetsoft-spark-master-pvc
-spec:
-  storageClassName: nfs-client
-----
-
-Create a file named `overlays/quickstart/statefulset-spark-worker.yaml` with the following content:
-
-.overlays/quickstart/statefulset-spark-worker.yaml
+Create a file named `overlays/cluster/statefulset-server.yaml` with the following content:
+.overlays/cluster/statefulset-server.yaml
 [source,yaml]
 ----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: inetsoft-spark-worker
+  name: inetsoft-server
 spec:
   volumeClaimTemplates:
     - metadata:
-        name: hadoop-data
+        name: inetsoft-mv
       spec:
         storageClassName: nfs-client
 ----
 
-Then, append the following to `overlays/quickstart/kustomization.yaml`:
+Create a file named `overlays/cluster/statefulset-scheduler.yaml` with the following content:
+.overlays/cluster/statefulset-scheduler.yaml
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: inetsoft-scheduler
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: inetsoft-mv
+      spec:
+        storageClassName: nfs-client
+----
 
-.overlays/quickstart/kustomization.yaml
+Then, append the following to `overlays/cluster/kustomization.yaml`:
+
+.overlays/cluster/kustomization.yaml
 [source,yaml]
 ----
 patchesStrategicMerge:
   - pvc-mysql.yaml
   - pvc-shared.yaml
-  - pvc-spark-master.yaml
-  - statefulset-spark-worker.yaml
-----
-
-[[quickstart-kubernetes-cluster-spark]]
-===== Spark
-
-If you don't have a Spark license key, change the number of replicas for the Spark worker stateful set to one. Create or edit the `overlays/quickstart/statefulset-spark-worker.yaml` file with the following content:
-
-.overlays/quickstart/statefulset-spark-worker.yaml
-[source,yaml]
-----
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: inetsoft-spark-worker
-spec:
-  replicas: 1
-----
-
-Then add the following to `overlays/quickstart/kustomization.yaml` if you have not already:
-
-.overlays/quickstart/kustomization.yaml
-[source,yaml]
-----
-patchesStrategicMerge:
-  - statefulset-spark-worker.yaml
+  - statefulset-server.yaml
+  - statefulset-scheduler.yaml
 ----
 
 [[quickstart-kubernetes-cluster-ingress]]
 ===== Ingress
 
-By default, the ingress is mapped to the `inetsoft.your-company.com` host. If you want to change this, create a file named `overlays/quickstart/config.properties` with the following content:
+By default, the ingress is mapped to the `inetsoft.your-company.com` host. If you want to change this, create a file named `overlays/cluster/config.properties` with the following content:
 
-.overlays/quickstart/config.properties
+.overlays/cluster/config.properties
 [source,properties]
 ----
 INETSOFT_PROXY_URL=http://your_host_name
 ----
 
-Then create a file named `overlays/quickstart/ingress.yaml` with the following content:
+Then create a file named `overlays/cluster/ingress.yaml` with the following content:
 
-.overlays/quickstart/ingress.yaml
+.overlays/cluster/ingress.yaml
 [source,yaml]
 ----
 - op: replace
@@ -349,9 +397,9 @@ Then create a file named `overlays/quickstart/ingress.yaml` with the following c
   value: your_hostname
 ----
 
-Edit the `overlays/quickstart/kustomization.yaml` file and append the following:
+Edit the `overlays/cluster/kustomization.yaml` file and append the following:
 
-.overlays/quickstart/kustomization.yaml
+.overlays/cluster/kustomization.yaml
 [source,yaml]
 ----
 configMapGenerator:
@@ -373,21 +421,23 @@ You can verify the final configuration by running:
 
 [source,shell]
 ----
-kubectl kustomize overlays/quickstart
+kubectl kustomize overlays/cluster
 ----
 
 Deploy the application to Kubernetes by running:
 
 [source,shell]
 ----
-kubectl apply -k overlays/quickstart
+kubectl apply -k overlays/cluster
 ----
+
+You can now access the InetSoft server using the ingress hostname. By default, this is http://inetsoft.your-company.com/.
 
 Remove the application by running:
 
 [source,shell]
 ----
-kubectl delete -k overlays/quickstart
+kubectl delete -k overlays/cluster
 ----
 
 [[additional-docs]]
@@ -395,5 +445,4 @@ kubectl delete -k overlays/quickstart
 
 * link:docs/docker-images.adoc[Docker Images]
 * link:docs/configuration.adoc[Configuration]
-* link:docs/spark.adoc[Spark]
 * link:docs/production.adoc[Production Deployment]

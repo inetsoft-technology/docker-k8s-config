@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: inetsoft
+secretGenerator:
+  - name: inetsoft
+    envs:
+      - secrets.properties
+configMapGenerator:
+  - name: inetsoft
+    envs:
+      - config.properties
+resources:
+  - pvc-mysql.yaml
+  - service-mysql.yaml
+  - deployment-mysql.yaml
+  - pvc-shared.yaml
+  - rbac.yaml
+  - service-server.yaml
+  - service-scheduler.yaml
+  - statefulset-server.yaml
+  - statefulset-scheduler.yaml
+  - ingress.yaml
+

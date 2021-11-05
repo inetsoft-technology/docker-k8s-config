@@ -7,6 +7,7 @@ v2021
 :toc: left
 :tocLevels: 3
 :sectlinks:
+:imagesdir: images
 ifdef::env-github[]
 :tip-caption: :bulb:
 :note-caption: :information_source:
@@ -14,8 +15,6 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
-
-IMPORTANT: This is preliminary documentation for the upcoming 2021 release of the InetSoft software. This document is subject to change pending release.
 
 [[overview]]
 == Overview
@@ -92,34 +91,6 @@ The following variables are used to configure the software:
 | The URL of the proxy server.
 | _None_
 
-| `INETSOFT_SPARK_ENABLED`
-| Enables the use of Spark for materialized views if `true`.
-| `false`
-
-| `INETSOFT_SPARK_MASTER_URL`
-| The URL of the Spark master node.
-| _None_
-
-| `INETSOFT_SPARK_WEBUI_PORT`
-| The Spark master web UI port number.
-| `8080`
-
-| `INETSOFT_SPARK_STORAGE_URL`
-| The URL of the Spark storage root directory. Must use the `hdfs`, `s3a`, `wasb`, or `gs` protocol.
-| _None_
-
-| `INETSOFT_SPARK_MAX_ROWS`
-| The maximum number of rows per table block.
-| `1000000`
-
-| `INETSOFT_SPARK_EXEC_MEMORY`
-| The amount of memory to allocate for Spark executors.
-| `1g`
-
-| `INETSOFT_SPARK_KRYO`
-| Enables the use of Kryo serialization in Spark.
-| `true`
-
 | `INETSOFT_K8S_API_SERVER`
 | The hostname and port of the Kuberentes API server.
 | `kubernetes.default.svc`
@@ -138,10 +109,6 @@ The following variables are used to configure the software:
 
 | `INETSOFT_K8S_LABEL_VALUE`
 | The value of the label used to identify InetSoft server and scheduler pods.
-| _None_
-
-| `INETSOFT_DEBUG`
-| Enables debug logging if `true`.
 | _None_
 |===
 
@@ -219,7 +186,7 @@ directory of this repository.
 
 Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts that are named using a convention that will ensure the order of their execution. For example, `00-start.sh` would be executed first and `99-finish.groovy` would be executed last.
 
-The script that copies the files from the staging directory to the shared directory, database, or Oak repository should be named `50-stage.groovy` or `50-stage.sh`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
+The builtin script that copies the files from the staging directory to the shared directory, database, or Oak repository is named `50-stage-type.groovy`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
 
 The following script levels are reserved by pre-defined scripts:
 

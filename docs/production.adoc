@@ -1,0 +1,105 @@
+= Production Deployment
+InetSoft Technology <info@inetsoft.com>
+v2021
+:doctype: article
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:tocLevels: 3
+:sectlinks:
+:imagesdir: images
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+[[overview]]
+== Overview
+
+The details of every production deployment are unique to the hosting Kubernetes cluster and the requirements for that deployment. As such, it is difficult to provide detailed instructions that match your needs. You are strongly encouraged to contact InetSoft support to determine the best way to design your deployment. This document provides general guidelines about the requirements for a production deployment.
+
+[[shared-storage]]
+== Shared Storage
+
+The shared configuration volume, `/var/lib/inetsoft/shared` must be mounted to persistent storage that is shared by all pods. The recommended storage type is listed in the following table.
+
+|===
+|Kubernetes Provider |Storage Type
+
+|Bare metal
+|Network storage, such as https://kubernetes.io/docs/concepts/storage/storage-classes/#nfs[NFS]
+
+|Amazon EKS
+|https://docs.aws.amazon.com/eks/latest/userguide/efs-csi.html[EFS]
+
+|Google GKE
+|https://cloud.google.com/kubernetes-engine/docs/concepts/persistent-volumes#storageclasses[Filestore]
+
+|Azure AKS
+|https://docs.microsoft.com/en-us/azure/aks/concepts-storage#storage-classes[Managed Disk or Azure File Share]
+|===
+
+[[mv-storage]]
+== Materialized View Storage
+
+Materialized views require fast access to the block files stored in the `/var/lib/inetsoft/local/bs` volume. The recommended storage type is listed in the following table.
+
+|===
+|Kubernetes Provider |Storage Type
+
+|Bare metal
+|A distributed, replicated file system that is local to each node, such as https://rook.io/docs/rook/v1.7/[Rook Ceph]
+
+|Amazon EKS
+|https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html[EBS]
+
+|Google GKE
+|https://cloud.google.com/kubernetes-engine/docs/concepts/persistent-volumes#storageclasses[Default (ext4)]
+
+|Azure AKS
+|https://docs.microsoft.com/en-us/azure/aks/concepts-storage#storage-classes[Managed Disk]
+|===
+
+[[oak-storage]]
+== Oak Storage
+
+Apache Oak requires two types of storage, node and blob (see the link:configuration.adoc[configuration document] for details).
+
+Node storage may use either a relational database or Mongo. The recommended type of node storage is listed in the following table.
+
+|===
+|Kubernetes Provider |Storage Type
+
+|Bare metal
+|You should https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider[decide for yourself] whether you want to host the database in the Kubernetes cluster or not.
+
+|Amazon EKS
+|https://aws.amazon.com/rds/[RDS]
+
+|Google GKE
+|https://cloud.google.com/sql[Cloud SQL]
+
+|Azure AKS
+|https://azure.microsoft.com/en-us/solutions/databases/#products[Azure Database]
+|===
+
+The recommended type of blob storage is listed in the following table.
+
+|===
+|Kubernetes Provider |Storage Type
+
+|Bare metal
+|Use the default option that uses the shared volume
+
+|Amazon EKS
+|S3
+
+|Google GKE
+|Use the file blob storage backed by a Filestore
+
+|Azure AKS
+|Azure
+|===

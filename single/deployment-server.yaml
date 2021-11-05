@@ -20,7 +20,7 @@ spec:
         - name: inetsoft-docker-secret
       containers:
         - name: inetsoft-server
-          image: docker.inetsoft.com/inetsoft/server:2021
+          image: docker.inetsoft.com/inetsoft/server:2021.0.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -33,18 +33,28 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+            - name: prometheus
+              containerPort: 8081
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            failureThreshold: 12
           livenessProbe:
             httpGet:
-              path: /ping
-              port: http
+              path: /health/liveness
+              port: 8081
             initialDelaySeconds: 30
-            periodSeconds: 30
+            periodSeconds: 60
           readinessProbe:
             httpGet:
-              path: /ping
-              port: http
-            initialDelaySeconds: 180
-            periodSeconds: 15
+              path: /health/readiness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 30
           env:
             - name: INETSOFT_MASTER_PASSWORD
               valueFrom:
@@ -56,7 +66,7 @@ spec:
               name: inetsoft-shared
       initContainers:
         - name: inetsoft-init-server
-          image: docker.inetsoft.com/inetsoft/init-oak:2021
+          image: docker.inetsoft.com/inetsoft/init-oak:2021.0.0
           imagePullPolicy: IfNotPresent
           resources:
             limits:

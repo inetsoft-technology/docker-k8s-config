@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: inetsoft-server
+spec:
+  selector:
+    matchLabels:
+      app: inetsoft-server
+  serviceName: inetsoft-server
+  replicas: 2
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: inetsoft-server
+    spec:
+      terminationGracePeriodSeconds: 60
+      imagePullSecrets:
+        - name: inetsoft-docker-secret
+      containers:
+        - name: inetsoft-server
+          image: docker.inetsoft.com/inetsoft/server:2021.0.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: prometheus
+              containerPort: 8081
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          env:
+            - name: INETSOFT_MASTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: INETSOFT_MASTER_PASSWORD
+                  name: inetsoft
+          volumeMounts:
+            - mountPath: "/var/lib/inetsoft/shared"
+              name: inetsoft-shared
+            - mountPath: "/var/lib/inetsoft/local/bs"
+              name: inetsoft-mv
+      initContainers:
+        - name: inetsoft-init-server
+          image: docker.inetsoft.com/inetsoft/init-oak:2021.0.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "2"
+          envFrom:
+            - configMapRef:
+                name: inetsoft
+            - secretRef:
+                name: inetsoft
+          volumeMounts:
+            - mountPath: "/var/lib/inetsoft/shared"
+              name: inetsoft-shared
+      volumes:
+        - name: inetsoft-shared
+          persistentVolumeClaim:
+            claimName: inetsoft-shared-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: inetsoft-mv
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 100Mi

@@ -7,6 +7,7 @@ v2021
 :toc: left
 :tocLevels: 3
 :sectlinks:
+:imagesdir: images
 ifdef::env-github[]
 :tip-caption: :bulb:
 :note-caption: :information_source:
@@ -14,8 +15,6 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
-
-IMPORTANT: This is preliminary documentation for the upcoming 2021 release of the InetSoft software. This document is subject to change pending release.
 
 [[overview]]
 == Overview
@@ -37,12 +36,14 @@ The three initialization images are:
 | Initializes a default file system data space.
 
 | `docker.inetsoft.com/inetsoft/init-oak`
-| Initializes a new data space based on   http://jackrabbit.apache.org/oak/[Apache Jackrabbit Oak] that is optimized   for use in Kubernetes.
+| Initializes a new data space based on   http://jackrabbit.apache.org/oak/[Apache Jackrabbit Oak] that is optimized for use in Kubernetes.
 |===
 
 All initialization images _must_ mount a volume at `/var/lib/inetsoft/shared`. This volume must be shared with the server and scheduler containers.
 
 NOTE: It is strongly recommended that the Oak data space is used in Kubernetes or a clustered deployment in Docker.
+
+See the link:configuration.adoc[configuration document] for details on configuring the initialization image.
 
 [[service-images]]
 == Service Images
@@ -61,6 +62,8 @@ The two service images are:
 
 IMPORTANT: All server, scheduler, and initialization containers _must_ have the `/var/lib/inetsoft/shared` volume mapped to the same persistent storage.
 
+Each scheduler and server container should have the `/var/lib/inetsoft/local/bs` volume mapped to its own persistent storage.
+
 The only environment variables used by these images are:
 
 |===
@@ -72,5 +75,13 @@ The only environment variables used by these images are:
 
 | `INETSOFT_MASTER_SALT`
 | The master password salt. Only used in FIPS mode.
+| _None_
+
+| `JAVA_OPTS`
+| Additional command line options for the server Java process.
+| `-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Duser.language=en -Duser.country=US -Djava.locale.providers=COMPAT,SPI`
+
+| `JAVA_CLASSPATH`
+| Additional entries to be added to the main classpath of the server. This should be formatted as `path1:path2:path3`.
 | _None_
 |===

@@ -4,11 +4,18 @@ metadata:
   name: inetsoft-server
   labels:
     app: inetsoft-server
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: /prometheus
+    prometheus.io/port: '8081'
 spec:
   type: NodePort
   ports:
     - port: 8080
       targetPort: 8080
+      protocol: TCP
+    - port: 8081
+      targetPort: 8081
       protocol: TCP
   selector:
     app: inetsoft-server

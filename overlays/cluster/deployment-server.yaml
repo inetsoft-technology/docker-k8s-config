@@ -1,6 +1,0 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: inetsoft-server
-spec:
-  replicas: 2

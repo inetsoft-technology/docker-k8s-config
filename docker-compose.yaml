@@ -1,37 +1,19 @@
 version: '3'
 services:
-  postgresql:
-    image: 'postgres:12'
-    environment:
-      POSTGRES_USER: inetsoft
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: inetsoft
-      # these arguments are required for PostgreSQL to work with Oak
-      POSTGRES_INITDB_ARGS: --lc-collate=C --lc-ctype=C --encoding=UTF8
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - ./postgres:/var/lib/postgresql/data/pgdata
   init:
-    image: 'docker.inetsoft.com/inetsoft/init-oak:2021'
-    depends_on:
-      - postgresql
-    deploy:
-      restart_policy:
-        condition: none
+    image: 'docker.inetsoft.com/inetsoft/init-fs:2021.0.0'
+    user: '1000:1000'
+    restart: 'no'
     volumes:
       - ./shared:/var/lib/inetsoft/shared
+      - ./config:/var/lib/inetsoft/external
     environment:
       INETSOFT_MASTER_PASSWORD: ${INETSOFT_MASTER_PASSWORD:?err}
       INETSOFT_LICENSE: ${INETSOFT_LICENSE:?err}
-      INETSOFT_CONFIG_URL: git://https://github.com/inetsoft-technology/docker-k8s-config.git
-      INETSOFT_CONFIG_PATH: config
-      INETSOFT_DB_TYPE: PostgreSQL
-      INETSOFT_DB_URL: jdbc:postgresql://postgresql:5432/inetsoft
-      INETSOFT_DB_DRIVER: org.postgresql.Driver
-      INETSOFT_DB_USER: inetsoft
-      INETSOFT_DB_PASSWORD: secret
+      INETSOFT_CONFIG_URL: file:///var/lib/inetsoft/external
   server:
-    image: 'docker.inetsoft.com/inetsoft/server:2021'
+    image: 'docker.inetsoft.com/inetsoft/server:2021.0.0'
+    user: '1000:1000'
     depends_on:
       - init
     volumes:
@@ -41,13 +23,9 @@ services:
     ports:
       - '8080:8080'
     entrypoint: [ "/usr/local/inetsoft/bin/wait-for-file.sh", "/var/lib/inetsoft/shared/.config-complete", "/usr/local/inetsoft/bin/start-server.sh" ]
-    deploy:
-      resources:
-        limits:
-          cpus: 2
-          memory: 2G
   scheduler:
-    image: 'docker.inetsoft.com/inetsoft/scheduler:2021'
+    image: 'docker.inetsoft.com/inetsoft/scheduler:2021.0.0'
+    user: '1000:1000'
     depends_on:
       - init
     volumes:
@@ -55,8 +33,3 @@ services:
     environment:
       INETSOFT_MASTER_PASSWORD: ${INETSOFT_MASTER_PASSWORD:?err}
     entrypoint: [ "/usr/local/inetsoft/bin/wait-for-file.sh", "/var/lib/inetsoft/shared/.config-complete", "/usr/local/inetsoft/bin/start-scheduler.sh" ]
-    deploy:
-      resources:
-        limits:
-          cpus: 2
-          memory: 1G

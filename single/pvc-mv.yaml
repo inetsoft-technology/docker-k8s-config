@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: inetsoft-spark-master-pvc
+  name: inetsoft-shared-pvc
 spec:
   storageClassName: standard
   accessModes:
