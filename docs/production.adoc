@@ -98,7 +98,7 @@ The recommended type of blob storage is listed in the following table.
 |S3
 
 |Google GKE
-|Use the file blob storage backed by a Filestore
+|Currently, there is no option to use GCS for blob storage. For the time being, use the file blob storage backed by a Filestore.
 
 |Azure AKS
 |Azure

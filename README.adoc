@@ -263,7 +263,7 @@ kubectl delete -k overlays/single
 
 The cluster example deploys two server instances and a scheduler instance. This requires a pooled (concurrent session or named user license) or two CPU licenses for two cores each.
 
-If you're using Minikube, you'll need to enable the [ingress]https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/ and [ingress-dns]https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/ addons.
+If you're using Minikube, you'll need to enable the https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/[ingress] and https://minikube.sigs.k8s.io/docs/handbook/addons/ingress-dns/[ingress-dns] addons.
 
 IMPORTANT: The default configuration of Minikube may be insufficient to run the cluster. You may need to increase the number CPUs and memory allocated to Minikube.
 
@@ -333,6 +333,7 @@ spec:
 ----
 
 Create a file named `overlays/cluster/statefulset-server.yaml` with the following content:
+
 .overlays/cluster/statefulset-server.yaml
 [source,yaml]
 ----
@@ -349,6 +350,7 @@ spec:
 ----
 
 Create a file named `overlays/cluster/statefulset-scheduler.yaml` with the following content:
+
 .overlays/cluster/statefulset-scheduler.yaml
 [source,yaml]
 ----
