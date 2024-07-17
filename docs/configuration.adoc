@@ -182,7 +182,7 @@ directory of this repository.
 
 Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts that are named using a convention that will ensure the order of their execution. For example, `00-start.sh` would be executed first and `99-finish.groovy` would be executed last.
 
-The builtin script that copies the files from the staging directory to the shared directory, database, or Oak repository is named `50-stage-type.groovy`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
+The builtin script that copies the files from the staging directory to the shared directory or database is named `50-stage-type.groovy`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
 
 The following script levels are reserved by pre-defined scripts:
 
@@ -195,183 +195,219 @@ The following script levels are reserved by pre-defined scripts:
 This convention allows external configurations to customize the configuration during various phases of the initialization process. For example, a script named `01-remove-extras.sh` could delete unwanted drivers or plugins from the staging directory. A script named `76-set-passwords.groovy` could change the username and password of a data source.
 
 [[oak]]
-=== Oak Configuration
+=== inetsoft.yaml Configuration
 
-By default, Oak is configured using the internal database for the document node store and a file blob store with sensible file paths. If you want to use MongoDB for the document node store or a different blob store, you'll need to include a custom `config/oak-config.yaml` file in your external configuration.
+The configuration of the storage back end is done in inetsoft.yaml. This file also contains the audit database configuration, the Hazelcast cluster configuration, as well a couple of other top-level initialization settings.
 
-The Oak configuration file has the following structure:
+===== Shared Configuration
+All configuration files share the following configuration settings, regardless of the storage implementation. These settings can be directly mapped to those in the legacy dbProp.properties file.
 
-.oak-config.yaml
+.inetsoft.yaml
 [source,yaml]
 ----
-blob: # <1>
-  file: # <2>
-    enabled: false # <3>
-    baseDir: '/var/lib/inetsoft/shared/oak' # <4>
-    cacheEnabled: false # <5>
-    cache: # <6>
-      cacheDir: '/var/lib/inetsoft/local/oak/{instance}/blob' # <7>
-      cacheSize: 68719476736 # <8>
-      stagingSplitPercentage: 10 # <9>
-      uploadThreads: 10 # <10>
-      stagingPurgeInterval: 300 # <11>
-      stagingRetryInterval: 600 # <12>
-  mongo: # <13>
-    enabled: false # <14>
-  s3: # <15>
-    enabled: false # <16>
-    accessKey: '' # <17>
-    secretKey: '' # <18>
-    bucket: '' # <19>
-    region: '' # <20>
-    endpoint: '' # <21>
-    connectionTimeout: 0 # <22>
-    socketTimeout: 0 # <23>
-    maxConnections: 0 # <24>
-    maxErrorRetry: 0 # <25>
-    writeThreads: 10 # <26>
-    renameKeys: false # <27>
-    cache: # <28>
-      cacheDir: '' # <29>
-      cacheSize: 68719476736 # <30>
-      stagingSplitPercentage: 10 # <31>
-      uploadThreads: 10 # <32>
-      stagingPurgeInterval: 300 # <33>
-      stagingRetryInterval: 600 # <34>
-  rdb: # <35>
-    enabled: false # <36>
-  azure: # <37>
-    enabled: false # <38>
-    secureAccessSignature: '' # <39>
-    blobEndpoint: '' # <40>
-    connectionString: '' # <41>
-    accountName: '' # <42>
-    accountKey: '' # <43>
-    container: '' # <44>
-    createContainer: true # <45>
-    maxConnections: 2 # <46>
-    socketTimeout: 3 # <47>
-    maxErrorRetry: -1 # <48>
-    cache: # <49>
-      cacheDir: '' # <50>
-      cacheSize: 68719476736 # <51>
-      stagingSplitPercentage: 10 # <52>
-      uploadThreads: 10 # <53>
-      stagingPurgeInterval: 300 # <54>
-      stagingRetryInterval: 600 # <55>
-node: # <56>
-  memoryCacheSize: 256 # <57>
-  nodeCachePercentage: 35 # <58>
-  prevDocCachePercentage: 4 # <59>
-  childrenCachePercentage: 15 # <60>
-  diffCachePercentage: 30 # <61>
-  cacheSegmentCount: 16 # <62>
-  cacheStackMoveDistance: 16 # <63>
-  bundlingDisabled: false # <64>
-  prefetchExternalChanges: false # <65>
-  updateLimit: 100000 # <66>
-  journalGcMaxAge: 86400000 # <67>
-  persistentCacheIncludes: # <68>
-    - '/'
-  cachePath: '/var/lib/inetsoft/local/oak/{instance}/node' # <69>
-  journalPath: '/var/lib/inetsoft/local/oak/{instance}/journal' # <70>
-  mongo: # <71>
-    enabled: false # <72>
-    maxReplicationLog: 21600 # <73>
-  rdb: # <74>
-    enabled: false # <75>
-mongo: # <76>
-  hosts: # <77>
-    - 'localhost:27017'
-  database: '' # <78>
-  user: '' # <79>
-  password: '' # <80>
-  authDatabase: '' # <81>
-  replicaSet: '' # <82>
-  ssl: false # <83>
-  socketKeepAlive: true # <84>
+version: "13.5.0"
+audit:
+  type: "H2"
+  jdbcUrl: "jdbc:h2:/data_dir/inetsoftdb/inetsoftdb;MODE=Derby;AUTO_SERVER=TRUE;AUTO_SERVER_PORT=8192;AUTO_RECONNECT=TRUE"
+  driverClassName: "org.h2.Driver"
+  requiresLogin: true
+  username: "inetsoft_admin"
+  password: "\\masterWer7z5uT6zrmE3tVlyk4jc2dMBPKkJ4llCGAdNm2Pc9rLXDZAkZlW31X0zX2DRBeWDA="
+  transactionIsolationLevel: "READ_UNCOMMITTED"
+cluster:
+  groupName: "inetsoft-f2767cbb-10f8-4495-8471-4bd9c4ba1414"
+  groupPassword: "\\masterWNLYCLnP+I1D+HCVRYDFM7D5kF4RyTkHWVdUh2extYnODn6z1FWUmGrkP3wZcIgsCp93WXJabgR5H0D1HTvpZgvXkkyK0fLkVbPlptrm+uMk9jkh8w8="
+  portNumber: 5701
+  outboundPortNumber: 0
+  multicastEnabled: true
+  multicastAddress: "224.2.2.3"
+  multicastPort: 54327
+  tcpEnabled: false
+pluginDirectories:
+  - "/data_dir/plugins"
+driverDirectories:
+  - "/data_dir/drivers"
+fipsComplianceMode: false
 ----
-<1> The configuration for the blob store.
-<2> Configuration for a file-based blob store.
-<3> Enables the use of the file system for the blob store.
-<4> The base directory where the blobs are created.
-<5> Enables the local file cache. Should only be used when `baseDir` is on a network file system.
-<6> Configuration for the local file cache. Required if `cacheEnabled` is `true`.
-<7> The root directory of the blob cache. Required.
-<8> The maximum size of the cache in bytes.
-<9> The percent of the cache utilized for upload staging.
-<10> The number of upload threads used for asynchronous uploads from staging.
-<11> The interval for the remove job in seconds.
-<12> The interval for the retry job in seconds.
-<13> The configuration for a MongoDB blob store. If used, the top-level `mongo` properties must also be configured.
-<14> Enables the use of a Mongo database for the blob store.
-<15> The configuration for an S3 blob store.
-<16> Enables the use of an S3 bucket for the blob store.
-<17> The AWS access key. If not specified, it will use the default credential discovery of the AWS SDK.
-<18> The AWS secret key. If not specified, it will use the default credential discovery of the AWS SDK.
-<19> The S3 bucket name. Required if `enabled` is true.
-<20> The AWS region. If not specified, it will use the default region discovery of the AWS SDK.
-<21> The AWS API endpoint. If not specified, the default endpoint for the S3 service in the region will be used.
-<22> The connection timeout.
-<23> The socket timeout.
-<24> The maximum number of connections to be used.
-<25> The maximum number of retries.
-<26> The number of threads used to write objects.
-<27> Flag that enables renaming of object keys in S3 concurrently.
-<28> Configuration for the local file cache. Required.
-<29> The root directory of the blob cache. Required.
-<30> The maximum size of the cache in bytes.
-<31> The percent of the cache utilized for upload staging.
-<32> The number of upload threads used for asynchronous uploads from staging.
-<33> The interval for the remove job in seconds.
-<34> The interval for the retry job in seconds.
-<35> The configuration for a relational database blob store. The database configured in the dbProp.properties file will be used.
-<36> Enables the use of a relational database for the blob store.
-<37> The configuration for an Azure blob store.
-<38> Enables the use of Azure for the blob store.
-<39> The Azure shared access signature token.
-<40> The Azure blob endpoint.
-<41> The Azure connection string. This overrides the `secureAccessSignature` and `blobEndpoint` properties.
-<42> The Azure storage account name.
-<43> The Azure storage account key.
-<44> The Azure blob storage container name. Required if enabled.
-<45> Flag that indicates if the container should be created if it doesn't exist.
-<46> The maximum number of connections per operation.
-<47> The request timeout.
-<48> The maximum number of retries per request.
-<49> Configuration for the local file cache. Required.
-<50> The root directory of the blob cache. Required.
-<51> The maximum size of the cache in bytes.
-<52> The percent of the cache utilized for upload staging.
-<53> The number of upload threads used for asynchronous uploads from staging.
-<54> The interval for the remove job in seconds.
-<55> The interval for the retry job in seconds.
-<56> The configuration for the node store.
-<57> The cache size in MB. This is distributed among various caches used in DocumentNodeStore.
-<58> Percentage of cache to be allocated towards the Node cache.
-<59> Percentage of cache to be allocated towards the Previous Document cache.
-<60> Percentage of cache to be allocated towards the Children cache.
-<61> Percentage of cache to be allocated towards the Diff cache.
-<62> The number of segments in the LIRS cache (default 16, a higher count means higher concurrency but slightly lower cache hit rate).
-<63> The delay to move entries to the head of the queue in the LIRS cache (default 16, a higher value means higher concurrency but slightly lower cache hit rate).
-<64> Flag that indicates if Node bundling is disabled.
-<65> Flag indicating if external changes should be pre-fetched in a background thread.
-<66> Number of content updates that need to happen before the updates are automatically purged to the private branch.
-<67> The max age (in milliseconds) that journal (for external changes) entries are kept (older ones are candidates for gc).
-<68> Paths which should be cached in persistent cache.
-<69> The path to the directory where the persistent cache will be stored.
-<70> The path to the directory where the persistent journal cache will be stored.
-<71> The configuration for a Mongo DB node document store. If used, the top-level `mongo` properties must also be configured.
-<72> Enables the use of a Mongo database for the document store.
-<73> Value in seconds. Determines the duration beyond which it can be safely assumed that the state on the secondaries is consistent with the primary, and it is safe to read from them.
-<74> The configuration for a relational database node store. The database configured in the `dbProp.properties` file will be used.
-<75> Enables the use of a relational database for the document node store.
-<76> The configuration for the Mongo DB connection.
-<77> The Mongo DB hostname and ports.
-<78> The name of the database. Required if Mongo is used.
-<79> The username used for authentication.
-<80> The password used for authentication.
-<81> The authentication database, if different from the storage database.
-<82> The required replica set name.
-<83> Flag that indicates if an SSL connection should be used.
-<84> Flag that indicates if socket keep-alive should be enabled for connections to MongoDB.
+===== Cluster Configuration
+Clusters *cannot* use the MapDB key-value storage or the local filesystem for blob storage. They should configure the cluster.quorumMembers property in inetsoft.yaml.
+
+The quorum members contain the identifiers of the server and scheduler instances that are members of the cluster quorum. For any node in the cluster, at least (n / 2) + 1 quorum members must be visible to a node in order for that node to make any persistent changes. This prevents inconsistencies from being introduced during a split-brain condition due to network partitioning. The quorum member identifier for a server or scheduler instance is set by using the inetsoft.cluster.quorumMemberId system property when starting the instance.
+
+For statically provisioned clusters, all server and scheduler nodes should be included in the quorum.
+
+For elastic clusters, the "base" server and scheduler nodes should be included in the quorum. For example, if the minimum number of server nodes is configured to be 3 in a Kubernetes stateful set, the hostnames of the first three server pods and the hostnames for all the scheduler nodes should be included in the quorum. During normal operation these pods will always be running and provide a consistent cluster quorum.
+
+For example, a statically provisioned cluster with 3 server instances and 1 scheduler instance should be configured using:
+
+.inetsoft.yaml
+[source,yaml]
+cluster:
+  quorumMembers:
+    - server1
+    - server2
+    - server3
+    - scheduler
+
+The instances would be started with the following command line options, respectively:
+
+[source]
+-Dinetsoft.cluster.quorumMemberId=server1
+-Dinetsoft.cluster.quorumMemberId=server2
+-Dinetsoft.cluster.quorumMemberId=server3
+-Dinetsoft.cluster.quorumMemberId=scheduler
+
+A Kubernetes deployment a minimum number of server pods of 3, 1 scheduler pod and the name of the server stateful set server in the namespace inetsoft would use the configuration:
+
+.inetsoft.yaml
+[source,yaml]
+cluster:
+  quorumMembers:
+    - server-0.inetsoft.svc.cluster.local
+    - server-1.inetsoft.svc.cluster.local
+    - server-2.inetsoft.svc.cluster.local
+    - scheduler
+
+The server pods would have the following command line option:
+[source]
+-Dinetsoft.cluster.quorumMemberId=$(hostname)
+
+The scheduler pod would have the following command line option:
+[source]
+-Dinetsoft.cluster.quorumMemberId=scheduler
+
+==== Configure Asset Storage
+By default, inetsoft.yaml is configured using the internal database for the document node store and a file blob store with sensible file paths. If you want to use a different storage system, you'll need to include a custom `config/inetsoft.yaml` file in your external configuration.
+
+The inetsoft.yaml asset storage configuration has the following structure:
+
+.inetsoft.yaml
+[source,yaml]
+----
+#Default
+keyValue:
+  type: "mapdb" # <1>
+  mapdb: # <2>
+    directory: "/data_dir/kv" # <3>
+blob: # <4>
+  type: "local" # <5>
+  filesystem: # <6>
+    directory: "/data_dir/blob" # <7>
+#AWS
+keyValue:
+  type: dynamodb
+  dynamodb: # <8>
+    region: us-east-1 # <9>
+    accessKeyId: your_access_key # <10>
+    secretAccessKey: your_secret_key # <11>
+    table: inetsoft # <12>
+    provisionedReadThroughput: 300 # <13>
+    provisionedWriteThroughput: 300 # <14>
+blob:
+  type: s3
+  cacheDirectory: "/cachedir/blob" # <15>
+  s3: # <16>
+    region: us-east-1 # <17>
+    accessKeyId: your_access_key # <18>
+    secretAccessKey: your_secret_key # <19>
+    bucket: inetsoft # <20>
+#Azure
+keyValue:
+  type: "cosmosdb"
+  cosmosdb: # <21>
+    accountHost: "https://localhost:8081" # <22>
+    accountKey: "your_account_key" # <23>
+    database: "inetsoft" # <24>
+    container: "inetsoft" # <25>
+    throughput: 400 # <26>
+blob:
+  type: "azure"
+  cacheDirectory: "/cache_dir/blob" # <27>
+  azure: # <28>
+    connectionString: "your_connection_string" # <29>
+    container: "inetsoft" # <30>
+#Google
+keyValue:
+  type: firestore
+  firestore: # <31>
+    serviceAccountFile: "/path/to/credentials.json" # <32>
+    collection: inetsoft # <33>
+blob:
+  type: gcs
+  cacheDirectory: "/cache_dir/blob" # <34>
+  gcs: # <35>
+    serviceAccountFile: "/path/to/credentials.json" # <36>
+    bucket: inetsoft # <37>
+#Mongo
+keyValue:
+  type: "mongo"
+  mongo: # <38>
+    hosts: # <39>
+    - 'localhost:27017'
+    database: test # <40>
+    collection: inetsoft # <41>
+#Relational Database (JDBC)
+keyValue:
+  type: "database"
+  database: # <42>
+    type: "H2" # <43>
+    jdbcUrl: "jdbc:h2:/data_dir/kv/kv;MODE=Derby;AUTO_SERVER=TRUE;AUTO_SERVER_PORT=8192;AUTO_RECONNECT=TRUE" # <44>
+    driverClassName: "org.h2.Driver" # <45>
+    requiresLogin: true # <46>
+    username: "inetsoft_admin" # <47>
+    password: "\\masterWer7z5uT6zrmE3tVlyk4jc2dMBPKkJ4llCGAdNm2Pc9rLXDZAkZlW31X0zX2DRBeWDA=" # <48>
+    transactionIsolationLevel: "READ_UNCOMMITTED" # <49>
+----
+<1> The Key-Value Storage type.
+<2> The configuration for a MapDB key-value storage.
+<3> The directory for a MapDB key-value storage.
+<4> The configuration for the blob store.
+<5> The type of blob store. NOTE: The local blob storage should only be used with a single server and single scheduler running on the same machine.
+<6> Configuration for a file-based blob store.
+<7> The directory where the blobs are created.
+<8> Example configuration for an AWS cloud-native implementation. AWS uses DynamoDB for key-value storage and S3 for blob storage.
+<9> The AWS region. If not specified, it will use the default region discovery of the AWS SDK.
+<10> The AWS access key. If not specified, it will use the default credential discovery of the AWS SDK.
+<11> The AWS secret key. If not specified, it will use the default credential discovery of the AWS SDK.
+<12> The AWS DynamoDB table name.
+<13> The AWS DynamoDB provisioned read throughput.
+<14> The AWS DynamoDB provisioned write throughput.
+<15> Configuration for the local file cache. Required.
+<16> The configuration for an S3 blob store.
+<17> The S3 region. If not specified, it will use the default region discovery of the AWS SDK.
+<18> The AWS S3 access key. If not specified, it will use the default credential discovery of the AWS SDK.
+<19> The AWS S3 secret key. If not specified, it will use the default credential discovery of the AWS SDK.
+<20> The AWS S3 bucket name.
+<21> Example configuration for Azure cloud-native implementation. Azure uses CosmosDB for key-value storage and Azure Blob for blob storage
+<22> The CosmosDB  account host.
+<23> The CosmosDB account key.
+<24> The CosmosDB database.
+<25> The CosmosDB container name.
+<26> The CosmosDB throughput.
+<27> The root directory of the blob cache. Required.
+<28> The configuration for an Azure blob store.
+<29> The Azure connection string.
+<30> The Azure blob storage container name. Required if enabled.
+<31> Example configuration for Google cloud-native implementation. Google uses Firestore for key-value storage and GCS for blob storage.
+<32> The path to the Google Firestore Service Account File.
+<33> The Google Firestore collection.
+<34> The root directory of the blob cache. Required.
+<35> The configuration for the GCS blob store.
+<36> The path to the GCS Service Account File.
+<37> The GCS bucket name.
+<38> Example configuration for MongoDB key-value storage.
+<39> The MongoDB hostname and ports.
+<40> The name of the MongoDB database. Required if Mongo is used.
+<41> The name of the MongoDB collection.
+<42> Example configuration for a relational database (JDBC) key-value storage.
+<43> The type of JDBC relational database.
+<44> The URL of the JDBC relational database.
+<45> The name of the driver class for the JDBC relational database.
+<46> Set to true if JDBC relational database requires login.
+<47> The username to log into the JDBC relational database. Required if requiresLogin is true.
+<48> The password to log into the JDBC relational database. Required if requiresLogin is true.
+<49> The JDBC relation database transaction isolation level.
+
+For more information regarding the configuration of the asset storage, please see the documentation linked below:
+
+https://www.inetsoft.com/docs/2023/userhelp/index.html#ProductDocs/administration/html/Configuring_the_Data_Spa.htm
