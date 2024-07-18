@@ -19,7 +19,7 @@ endif::[]
 [[overview]]
 == Overview
 
-Three initialization images and two service images are provided. The initialization images are intended for use as a sidecar container that performs a one-time configuration that may be customized without creating any new images. The service images are used to run the server and scheduler.
+One initialization image and two service images are provided. The initialization image is intended for use as a sidecar container that performs a one-time configuration that may be customized without creating any new images. The service images are used to run the server and scheduler.
 
 [[init-images]]
 == Initialization Images
@@ -29,19 +29,14 @@ The three initialization images are:
 |===
 | Image | Description
 
-| `docker.inetsoft.com/inetsoft/init-db`
-| Initializes a database data space.
+| `docker.inetsoft.com/inetsoft/init`
+| Initializes the data space.
 
-| `docker.inetsoft.com/inetsoft/init-fs`
-| Initializes a default file system data space.
-
-| `docker.inetsoft.com/inetsoft/init-oak`
-| Initializes a new data space based on   http://jackrabbit.apache.org/oak/[Apache Jackrabbit Oak] that is optimized for use in Kubernetes.
 |===
 
-All initialization images _must_ mount a volume at `/var/lib/inetsoft/shared`. This volume must be shared with the server and scheduler containers.
+The initialization image _must_ mount a volume at `/var/lib/inetsoft/shared`. This volume must be shared with the server and scheduler containers.
 
-NOTE: It is strongly recommended that the Oak data space is used in Kubernetes or a clustered deployment in Docker.
+NOTE: It is strongly recommended that the data space is used in Kubernetes or a clustered deployment in Docker.
 
 See the link:configuration.adoc[configuration document] for details on configuring the initialization image.
 
