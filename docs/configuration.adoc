@@ -182,7 +182,7 @@ directory of this repository.
 
 Initialization scripts are shell (`.sh`) or Groovy (`.groovy`) scripts that are named using a convention that will ensure the order of their execution. For example, `00-start.sh` would be executed first and `99-finish.groovy` would be executed last.
 
-The builtin script that copies the files from the staging directory to the shared directory or database is named `50-stage-type.groovy`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
+The builtin script that copies the files from the staging directory to the shared directory is named `50-stage-type.groovy`. That way, any scripts that should be executed before files are deployed into the data space should be less than 50 and any scripts that should be executed after they are deployed should be greater than 50. Groovy scripts should not call `connect` unless they are greater than 50.
 
 The following script levels are reserved by pre-defined scripts:
 
@@ -197,7 +197,7 @@ This convention allows external configurations to customize the configuration du
 [[oak]]
 === inetsoft.yaml Configuration
 
-The configuration of the storage back end is done in inetsoft.yaml. This file also contains the audit database configuration, the Hazelcast cluster configuration, as well a couple of other top-level initialization settings.
+The configuration of the storage back end is done in inetsoft.yaml. This file contains the key-value and blob store configuration as well as the audit database configuration, the Hazelcast cluster configuration, as well a couple of other top-level initialization settings.
 
 ===== Shared Configuration
 All configuration files share the following configuration settings, regardless of the storage implementation. These settings can be directly mapped to those in the legacy dbProp.properties file.
@@ -257,7 +257,7 @@ The instances would be started with the following command line options, respecti
 -Dinetsoft.cluster.quorumMemberId=server3
 -Dinetsoft.cluster.quorumMemberId=scheduler
 
-A Kubernetes deployment a minimum number of server pods of 3, 1 scheduler pod and the name of the server stateful set server in the namespace inetsoft would use the configuration:
+A Kubernetes deployment with a minimum number of 3 server pods, 1 scheduler pod and the name of the server stateful set server in the namespace inetsoft would use the configuration:
 
 .inetsoft.yaml
 [source,yaml]
@@ -277,9 +277,11 @@ The scheduler pod would have the following command line option:
 -Dinetsoft.cluster.quorumMemberId=scheduler
 
 ==== Configure Asset Storage
-By default, inetsoft.yaml is configured using the internal database for the document node store and a file blob store with sensible file paths. If you want to use a different storage system, you'll need to include a custom `config/inetsoft.yaml` file in your external configuration.
+By default, inetsoft.yaml is configured using an H2 database and a shared filesystem blob store. If you want to use a different storage system, you'll need to include a custom `config/inetsoft.yaml` file in your external configuration.
 
-The inetsoft.yaml asset storage configuration has the following structure:
+The inetsoft.yaml asset storage configuration has the following structure shown below.
+
+*NOTE:*  The below is an example of multiple configurations. The actual inetsoft.yaml used in a deployment should only contain *one* of the configurations.
 
 .inetsoft.yaml
 [source,yaml]
@@ -290,123 +292,150 @@ keyValue:
   mapdb: # <2>
     directory: "/data_dir/kv" # <3>
 blob: # <4>
-  type: "local" # <5>
-  filesystem: # <6>
-    directory: "/data_dir/blob" # <7>
+  type: "filesystem" # <5>
+  cacheDirectory: "/cache_dir/blob" # <6>
+  filesystem: # <7>
+    directory: "/shared_dir/blob" # <8>
 #AWS
 keyValue:
   type: dynamodb
-  dynamodb: # <8>
-    region: us-east-1 # <9>
-    accessKeyId: your_access_key # <10>
-    secretAccessKey: your_secret_key # <11>
-    table: inetsoft # <12>
-    provisionedReadThroughput: 300 # <13>
-    provisionedWriteThroughput: 300 # <14>
+  dynamodb: # <9>
+    region: us-east-1 # <10>
+    accessKeyId: your_access_key # <11>
+    secretAccessKey: your_secret_key # <12>
+    table: inetsoft # <13>
+    provisionedReadThroughput: 300 # <14>
+    provisionedWriteThroughput: 300 # <15>
+    onDemandCapicity: true # <16>
 blob:
   type: s3
-  cacheDirectory: "/cachedir/blob" # <15>
-  s3: # <16>
-    region: us-east-1 # <17>
-    accessKeyId: your_access_key # <18>
-    secretAccessKey: your_secret_key # <19>
-    bucket: inetsoft # <20>
+  cacheDirectory: "/cachedir/blob" # <17>
+  s3: # <18>
+    region: us-east-1 # <19>
+    accessKeyId: your_access_key # <20>
+    secretAccessKey: your_secret_key # <21>
+    bucket: inetsoft # <22>
 #Azure
 keyValue:
   type: "cosmosdb"
-  cosmosdb: # <21>
-    accountHost: "https://localhost:8081" # <22>
-    accountKey: "your_account_key" # <23>
-    database: "inetsoft" # <24>
-    container: "inetsoft" # <25>
-    throughput: 400 # <26>
+  cosmosdb: # <23>
+    accountHost: "https://localhost:8081" # <24>
+    accountKey: "your_account_key" # <25>
+    database: "inetsoft" # <26>
+    container: "inetsoft" # <27>
+    throughput: 400 # <28>
+    region: "East US" # <29>
+    emulated: false # <30>
 blob:
   type: "azure"
-  cacheDirectory: "/cache_dir/blob" # <27>
-  azure: # <28>
-    connectionString: "your_connection_string" # <29>
-    container: "inetsoft" # <30>
+  cacheDirectory: "/cache_dir/blob" # <31>
+  azure: # <32>
+    connectionString: "your_connection_string" # <33>
+    container: "inetsoft" # <34>
 #Google
 keyValue:
   type: firestore
-  firestore: # <31>
-    serviceAccountFile: "/path/to/credentials.json" # <32>
-    collection: inetsoft # <33>
+  firestore: # <35>
+    serviceAccountFile: "/path/to/credentials.json" # <36>
+    collection: inetsoft # <37>
+    emulated: false # <38>
+    emulatorHost: "hostname:port" # <39>
 blob:
   type: gcs
-  cacheDirectory: "/cache_dir/blob" # <34>
-  gcs: # <35>
-    serviceAccountFile: "/path/to/credentials.json" # <36>
-    bucket: inetsoft # <37>
+  cacheDirectory: "/cache_dir/blob" # <40>
+  gcs: # <41>
+    serviceAccountFile: "/path/to/credentials.json" # <42>
+    bucket: inetsoft # <43>
+    emulated: false # <44>
+    emulatorHost: "hostname:port" # <45>
 #Mongo
 keyValue:
   type: "mongo"
-  mongo: # <38>
-    hosts: # <39>
+  mongo: # <46>
+    hosts: # <47>
     - 'localhost:27017'
-    database: test # <40>
-    collection: inetsoft # <41>
+    database: test # <48>
+    collection: inetsoft # <49>
+    authDatabase: "authdb"# <50>
+    sslEnabled: true # <51>
+    replicaSet: "replicaEx"# <52>
 #Relational Database (JDBC)
 keyValue:
   type: "database"
-  database: # <42>
-    type: "H2" # <43>
-    jdbcUrl: "jdbc:h2:/data_dir/kv/kv;MODE=Derby;AUTO_SERVER=TRUE;AUTO_SERVER_PORT=8192;AUTO_RECONNECT=TRUE" # <44>
-    driverClassName: "org.h2.Driver" # <45>
-    requiresLogin: true # <46>
-    username: "inetsoft_admin" # <47>
-    password: "\\masterWer7z5uT6zrmE3tVlyk4jc2dMBPKkJ4llCGAdNm2Pc9rLXDZAkZlW31X0zX2DRBeWDA=" # <48>
-    transactionIsolationLevel: "READ_UNCOMMITTED" # <49>
+  database: # <53>
+    type: "H2" # <54>
+    jdbcUrl: "jdbc:h2:/data_dir/kv/kv;MODE=Derby;AUTO_SERVER=TRUE;AUTO_SERVER_PORT=8192;AUTO_RECONNECT=TRUE" # <55>
+    driverClassName: "org.h2.Driver" # <56>
+    requiresLogin: true # <57>
+    username: "inetsoft_admin" # <58>
+    password: "\\masterWer7z5uT6zrmE3tVlyk4jc2dMBPKkJ4llCGAdNm2Pc9rLXDZAkZlW31X0zX2DRBeWDA=" # <59>
+    transactionIsolationLevel: "READ_UNCOMMITTED" # <60>
+    timeout: 120000L # <61>
+    pool: # <62>
+      property: value
 ----
 <1> The Key-Value Storage type.
 <2> The configuration for a MapDB key-value storage.
 <3> The directory for a MapDB key-value storage.
 <4> The configuration for the blob store.
-<5> The type of blob store. NOTE: The local blob storage should only be used with a single server and single scheduler running on the same machine.
-<6> Configuration for a file-based blob store.
-<7> The directory where the blobs are created.
-<8> Example configuration for an AWS cloud-native implementation. AWS uses DynamoDB for key-value storage and S3 for blob storage.
-<9> The AWS region. If not specified, it will use the default region discovery of the AWS SDK.
-<10> The AWS access key. If not specified, it will use the default credential discovery of the AWS SDK.
-<11> The AWS secret key. If not specified, it will use the default credential discovery of the AWS SDK.
-<12> The AWS DynamoDB table name.
-<13> The AWS DynamoDB provisioned read throughput.
-<14> The AWS DynamoDB provisioned write throughput.
-<15> Configuration for the local file cache. Required.
-<16> The configuration for an S3 blob store.
-<17> The S3 region. If not specified, it will use the default region discovery of the AWS SDK.
-<18> The AWS S3 access key. If not specified, it will use the default credential discovery of the AWS SDK.
-<19> The AWS S3 secret key. If not specified, it will use the default credential discovery of the AWS SDK.
-<20> The AWS S3 bucket name.
-<21> Example configuration for Azure cloud-native implementation. Azure uses CosmosDB for key-value storage and Azure Blob for blob storage
-<22> The CosmosDB  account host.
-<23> The CosmosDB account key.
-<24> The CosmosDB database.
-<25> The CosmosDB container name.
-<26> The CosmosDB throughput.
-<27> The root directory of the blob cache. Required.
-<28> The configuration for an Azure blob store.
-<29> The Azure connection string.
-<30> The Azure blob storage container name. Required if enabled.
-<31> Example configuration for Google cloud-native implementation. Google uses Firestore for key-value storage and GCS for blob storage.
-<32> The path to the Google Firestore Service Account File.
-<33> The Google Firestore collection.
-<34> The root directory of the blob cache. Required.
-<35> The configuration for the GCS blob store.
-<36> The path to the GCS Service Account File.
-<37> The GCS bucket name.
-<38> Example configuration for MongoDB key-value storage.
-<39> The MongoDB hostname and ports.
-<40> The name of the MongoDB database. Required if Mongo is used.
-<41> The name of the MongoDB collection.
-<42> Example configuration for a relational database (JDBC) key-value storage.
-<43> The type of JDBC relational database.
-<44> The URL of the JDBC relational database.
-<45> The name of the driver class for the JDBC relational database.
-<46> Set to true if JDBC relational database requires login.
-<47> The username to log into the JDBC relational database. Required if requiresLogin is true.
-<48> The password to log into the JDBC relational database. Required if requiresLogin is true.
-<49> The JDBC relation database transaction isolation level.
+<5> The type of blob store.
+<6> The root directory of the filesystem blob cache. Required.
+<7> Configuration for a file-based blob store.
+<8> The directory where the blobs are created.
+<9> Example configuration for an AWS cloud-native implementation. AWS uses DynamoDB for key-value storage and S3 for blob storage. The S3 blob storage includes S3-compatible object stores e.g. MinIO and Ceph.
+<10> The AWS region. If not specified, it will use the default region discovery of the AWS SDK.
+<11> The AWS access key. If not specified, it will use the default credential discovery of the AWS SDK.
+<12> The AWS secret key. If not specified, it will use the default credential discovery of the AWS SDK.
+<13> The AWS DynamoDB table name. Note, this is only used to create the table if it does not already exist.
+<14> The AWS DynamoDB provisioned read throughput.
+<15> The AWS DynamoDB provisioned write throughput.
+<16> The boolean flag for on-demand capacity. When set to true, uses on-demand capacity instead of provisioned capacity when creating the table.
+<17> Configuration for the local file cache. Required.
+<18> The configuration for an S3 blob store.
+<19> The S3 region. If not specified, it will use the default region discovery of the AWS SDK.
+<20> The S3 access key. If not specified, it will use the default credential discovery of the AWS SDK.
+<21> The S3 secret key. If not specified, it will use the default credential discovery of the AWS SDK.
+<22> The S3 bucket name.
+<23> Example configuration for Azure cloud-native implementation. Azure uses CosmosDB for key-value storage and Azure Blob for blob storage
+<24> The CosmosDB  account host.
+<25> The CosmosDB account key.
+<26> The CosmosDB database.
+<27> The CosmosDB container name.
+<28> The CosmosDB throughput.
+<29> The CosmoSDB region.
+<30> The boolean flag indicating if the CosmosDB service is being served by an emulator.
+<31> The root directory of the blob cache. Required.
+<32> The configuration for an Azure blob store.
+<33> The Azure connection string.
+<34> The Azure blob storage container name. Required if enabled.
+<35> Example configuration for Google cloud-native implementation. Google uses Firestore for key-value storage and GCS for blob storage.
+<36> The path to the Google Firestore Service Account File.
+<37> The Google Firestore collection.
+<38> The boolean flag indicating if the Firestore service is being served by an emulator.
+<39> The 'hostname:port' for the emulator. This is required if emulated is true.
+<40> The root directory of the blob cache. Required.
+<41> The configuration for the GCS blob store.
+<42> The path to the GCS Service Account File.
+<43> The GCS bucket name.
+<44> The boolean flag indicating if the GCS service is being served by an emulator.
+<45> The 'hostname:port' for the emulator. This is required if emulated is true.
+<46> Example configuration for MongoDB key-value storage.
+<47> The MongoDB hostname and ports.
+<48> The name of the MongoDB database. Required if Mongo is used.
+<49> The name of the MongoDB collection.
+<50> The name of the MongoDB authorization database
+<51> The MongoDB SSL enabled flag. Set to true if SSL is used.
+<52> The name of the required MongoDB replica set.
+<53> Example configuration for a relational database (JDBC) key-value storage.
+<54> The type of JDBC relational database.
+<55> The URL of the JDBC relational database.
+<56> The name of the driver class for the JDBC relational database.
+<57> Set to true if JDBC relational database requires login.
+<58> The username to log into the JDBC relational database. Required if requiresLogin is true.
+<59> The password to log into the JDBC relational database. Required if requiresLogin is true.
+<60> The JDBC relation database transaction isolation level.
+<61> The amount of time in milliseconds to wait for the database to be available.
+<62> The additional properties for the connection pool.
 
 For more information regarding the configuration of the asset storage, please see the documentation linked below:
 
