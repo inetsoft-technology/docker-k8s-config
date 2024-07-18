@@ -36,8 +36,6 @@ The three initialization images are:
 
 The initialization image _must_ mount a volume at `/var/lib/inetsoft/shared`. This volume must be shared with the server and scheduler containers.
 
-NOTE: It is strongly recommended that the data space is used in Kubernetes or a clustered deployment in Docker.
-
 See the link:configuration.adoc[configuration document] for details on configuring the initialization image.
 
 [[service-images]]

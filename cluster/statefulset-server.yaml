@@ -20,7 +20,7 @@ spec:
         - name: inetsoft-docker-secret
       containers:
         - name: inetsoft-server
-          image: docker.inetsoft.com/inetsoft/server:2021.0.0
+          image: docker.inetsoft.com/inetsoft/server:2023.0.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -40,14 +40,14 @@ spec:
             httpGet:
               path: /health/readiness
               port: 8081
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 12
           livenessProbe:
             httpGet:
               path: /health/liveness
               port: 8081
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 60
           readinessProbe:
             httpGet:
@@ -68,7 +68,7 @@ spec:
               name: inetsoft-mv
       initContainers:
         - name: inetsoft-init-server
-          image: docker.inetsoft.com/inetsoft/init-oak:2021.0.0
+          image: docker.inetsoft.com/inetsoft/init:2023.0.0
           imagePullPolicy: IfNotPresent
           resources:
             limits:

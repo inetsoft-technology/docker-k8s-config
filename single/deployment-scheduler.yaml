@@ -20,7 +20,7 @@ spec:
         - name: inetsoft-docker-secret
       containers:
         - name: inetsoft-scheduler
-          image: docker.inetsoft.com/inetsoft/scheduler:2021.0.0
+          image: docker.inetsoft.com/inetsoft/scheduler:2023.0.0
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -38,7 +38,7 @@ spec:
               command:
                 - /usr/local/inetsoft/bin/probe.sh
                 - readiness
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 30
             timeoutSeconds: 10
@@ -47,7 +47,7 @@ spec:
               command:
                 - /usr/local/inetsoft/bin/probe.sh
                 - liveness
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 60
             timeoutSeconds: 10
           readinessProbe:
@@ -55,7 +55,7 @@ spec:
               command:
                 - /usr/local/inetsoft/bin/probe.sh
                 - readiness
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 10
           env:
@@ -69,7 +69,7 @@ spec:
               name: inetsoft-shared
       initContainers:
         - name: inetsoft-init-scheduler
-          image: docker.inetsoft.com/inetsoft/init-oak:2021.0.0
+          image: docker.inetsoft.com/inetsoft/init:2023.0.0
           imagePullPolicy: IfNotPresent
           resources:
             limits:
