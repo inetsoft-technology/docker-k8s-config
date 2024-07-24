@@ -60,7 +60,7 @@ The following variables are used to configure the software:
 | _None_
 
 | `INETSOFT_DB_TYPE`
-| The type of internal database. Must be one of `SQLServer`, `Oracle`,   `Derby`, `DB2`, `PostgreSQL`, `MySQL`, or `H2`.
+| The type of internal database. Must be one of `SQL_SERVER`, `ORACLE`,   `DERBY`, `DB2`, `POSTGRESQL`, `MYSQL`, or `H2`.
 | `H2`
 
 | `INETSOFT_DB_URL`
@@ -161,14 +161,12 @@ The external configuration may contain the following directories:
 | `config/`
 | Files to be placed in the data space. It may include an `asset.dat.d` directory containing assets. This is essentially a local `sree.home` directory.
 
-| `drivers/`
-| Additional JDBC drivers.
 
 | `lib/`
 | Additional JAR files that should be added to the application class path.
 
 | `plugins/`
-| Additional plugins.
+| Additional plugins and JDBC drivers.
 
 | `scripts/`
 | Additional or overridden initialization scripts.
