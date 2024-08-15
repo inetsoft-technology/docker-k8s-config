@@ -64,42 +64,38 @@ Materialized views require fast access to the block files stored in the `/var/li
 |===
 
 [[oak-storage]]
-== Oak Storage
+== Asset Storage
 
-Apache Oak requires two types of storage, node and blob (see the link:configuration.adoc[configuration document] for details).
+The InetSoft application contains two storage types. The 'Key-Value Storage Type' and the 'Blob Storage Type'. The ‘Key-Value Storage Type’ determines the method of storage for key-value settings, such as server properties. The default is MapDB. The ‘Blob Storage Type’ determines the method of storage for binary objects, such as Dashboards. The default is shared file system.
 
-Node storage may use either a relational database or Mongo. The recommended type of node storage is listed in the following table.
+The table below provide examples of common storage configurations.
 
-|===
-|Kubernetes Provider |Storage Type
-
-|Bare metal
-|You should https://cloud.google.com/blog/products/databases/to-run-or-not-to-run-a-database-on-kubernetes-what-to-consider[decide for yourself] whether you want to host the database in the Kubernetes cluster or not.
-
-|Amazon EKS
-|https://aws.amazon.com/rds/[RDS]
-
-|Google GKE
-|https://cloud.google.com/sql[Cloud SQL]
-
-|Azure AKS
-|https://azure.microsoft.com/en-us/solutions/databases/#products[Azure Database]
-|===
-
-The recommended type of blob storage is listed in the following table.
 
 |===
-|Kubernetes Provider |Storage Type
+|Storage provider |Key-Value Storage Type |Blob Storage Type
 
-|Bare metal
-|Use the default option that uses the shared volume
+|Default
+|The default configuration has MapDB as key-value storage.
+|The default configuration uses a shared file system (NFS/Samba/CIFS) blob engine.
 
-|Amazon EKS
-|S3
+|AWS
+|https://aws.amazon.com/dynamodb/[DynamoDB]
+|https://aws.amazon.com/s3/[S3]. Note, the S3 blob engine can be used with any S3-compatible object storage, i.e. a self-hosted MinIO installation or Ceph.
 
-|Google GKE
-|Currently, there is no option to use GCS for blob storage. For the time being, use the file blob storage backed by a Filestore.
-
-|Azure AKS
 |Azure
+|https://azure.microsoft.com/en-us/products/cosmos-db[CosmosDB]
+|https://azure.microsoft.com/en-us/products/storage/blobs[Azure Blob Storage]
+
+|Google
+|https://cloud.google.com/firestore?hl=en[Firestore]
+|https://cloud.google.com/storage?hl=en[GCS]
+
+|Relational Database (JDBC)
+|MS SQL Server, MySQL, H2 etc.
+|
+
+|MongoDB
+|https://www.mongodb.com/products/platform/atlas-database[MongoDB]
+|
 |===
+
