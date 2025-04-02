@@ -1,4 +1,4 @@
-= Deploying InetSoft in Docker and Kubernetes
+= Deploying Style Intelligence in Docker and Kubernetes
 InetSoft Technology <info@inetsoft.com>
 v2021
 :doctype: article
