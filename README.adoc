@@ -16,6 +16,8 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+IMPORTANT: This documentation is for the legacy Style Intelligence product. Documentation for Style BI can be found https://github.com/inetsoft-technology/stylebi[here].
+
 [[overview]]
 == Overview
 
